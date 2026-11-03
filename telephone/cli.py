@@ -331,11 +331,19 @@ def export(
     out: Path = typer.Option(Path("web/public/data")),
     thumb: int = typer.Option(512, help="Thumbnail long edge"),
     include_private: bool = typer.Option(False),
+    experiment: list[str] = typer.Option(None, help="Only these experiment ids"),
+    clean: bool = typer.Option(False, help="Delete the output folder first"),
 ):
     """Ledger -> JSON + thumbnails for the website."""
     from .export import export_all
 
-    summary = export_all(out, thumb_size=thumb, include_private=include_private)
+    summary = export_all(
+        out,
+        thumb_size=thumb,
+        include_private=include_private,
+        experiments=experiment or None,
+        clean=clean,
+    )
     console.print(json.dumps(summary, indent=2))
 
 
