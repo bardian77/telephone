@@ -127,6 +127,8 @@ class Survival(BaseModel):
 class Metrics(BaseModel):
     clip_dist_to_g0: float | None = None
     clip_dist_to_prev: float | None = None
+    hist_dist_to_g0: float | None = None
+    hist_dist_to_prev: float | None = None
     ssim_to_g0: float | None = None
     ssim_to_prev: float | None = None
     lpips_to_g0: float | None = None

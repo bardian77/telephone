@@ -1,0 +1,20 @@
+id: exp00_smoke
+title: "Smoke test: the full pipeline on synthetic fixtures with mock providers"
+question: "Does every station, metric and export run end to end without keys or spend?"
+description: >
+  Not an experiment. Runs the three station kinds over the five synthetic fixtures with the
+  deterministic mock captioner and generator. Used by the tests, the CI and the sample website.
+images: ["fixtures"]
+generations: 6
+seed: 1
+repeats: 1
+extractor: { provider: mock }
+variants:
+  - name: compression
+    stations:
+      - { kind: platform, params: { preset: harsh } }
+  - name: telephone
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: mock, params: { mode: detailed } }
+      - { kind: regenerate, provider: mock, params: { size: 512 } }

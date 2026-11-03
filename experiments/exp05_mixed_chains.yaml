@@ -1,0 +1,30 @@
+id: exp05_mixed_chains
+title: "Experiment 5: mixed chains"
+question: "When compression and AI steps are interleaved, which one does the damage?"
+description: >
+  Three chains over the same originals: AI only (caption, regenerate), AI with heavy platform
+  compression before every caption, and a chain where the AI step happens only every other
+  generation (platform-only in between). Compare drift per generation and per AI step.
+images: ["data/originals/*.jpg", "data/originals/*.jpeg", "data/originals/*.png"]
+generations: 12
+seed: 7
+repeats: 1
+extractor: { provider: anthropic, model: claude-sonnet-5-5 }
+variants:
+  - name: ai_only
+    stations:
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: detailed } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+  - name: harsh_then_ai
+    stations:
+      - { kind: platform, params: { preset: harsh } }
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: detailed } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+  - name: ai_then_three_uploads
+    notes: "One AI step then three simulated uploads per generation"
+    stations:
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: detailed } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+      - { kind: platform, params: { preset: whatsapp } }
+      - { kind: platform, params: { preset: messenger } }
+      - { kind: platform, params: { preset: instagram } }

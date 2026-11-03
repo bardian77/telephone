@@ -1,0 +1,21 @@
+id: exp06_physical
+title: "Experiment 6: the physical loop"
+question: "What does a camera pointed at a screen keep that a platform or a model does not?"
+description: >
+  Generation n is a photograph of a screen showing generation n-1, taken with a phone. The
+  frames are dropped in data/physical/<image_stem>/ in order and the physical station picks them
+  up, so the physical loop gets exactly the same metrics as the digital ones. Compare against
+  exp01 (compression) and exp02 (AI) on the same originals. Manual, so run on 2 or 3 images.
+images: ["data/originals/*.jpg", "data/originals/*.jpeg", "data/originals/*.png"]
+generations: 10
+seed: 7
+repeats: 1
+extractor: { provider: anthropic, model: claude-sonnet-5-5 }
+variants:
+  - name: phone_camera
+    notes: "Set params.folder per image with: telephone run-experiment exp06 --physical-root data/physical"
+    stations:
+      - { kind: physical, params: { folder: "data/physical/{image_stem}", device: "phone" } }
+references:
+  - "Alvin Lucier, I Am Sitting in a Room (1969)"
+  - "Pete Ashton, I Am Sitting in Stagram (2015)"

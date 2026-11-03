@@ -1,0 +1,31 @@
+id: exp02_caption_length
+title: "Experiment 2: caption and regenerate, short vs detailed"
+question: "Does a longer, more careful description keep more of the photograph alive, or does it just drift differently?"
+description: >
+  Each generation: a platform step (Instagram preset), a vision-language model writes a caption,
+  a text-to-image model recreates the picture from that caption. The only variable is caption
+  length: one sentence of 20 words vs about 150 words. Same generator, same seed.
+images: ["data/originals/*.jpg", "data/originals/*.jpeg", "data/originals/*.png"]
+generations: 12
+seed: 7
+repeats: 1
+extractor: { provider: anthropic, model: claude-sonnet-5-5 }
+variants:
+  - name: short
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: short } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+  - name: detailed
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: detailed } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+  - name: literal
+    notes: "An inventory of nouns instead of prose: what happens when the description has no grammar?"
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: literal } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+references:
+  - "Shumailov et al., AI models collapse when trained on recursively generated data, Nature (2024)"

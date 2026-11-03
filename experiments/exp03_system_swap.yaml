@@ -1,0 +1,34 @@
+id: exp03_system_swap
+title: "Experiment 3: swap the captioner and the generator"
+question: "Does the drift belong to a particular model, or to the process of describing and redrawing itself?"
+description: >
+  A 2 x 2 grid: captioner in {Claude Sonnet 5.5, Gemini 2.5 Flash}, generator in
+  {Gemini 2.5 Flash Image, FLUX.1 schnell on Cloudflare}. Detailed captions throughout.
+  If all four cells drift the same way, the process is the cause. If one cell is different,
+  that system is.
+images: ["data/originals/*.jpg", "data/originals/*.jpeg", "data/originals/*.png"]
+generations: 10
+seed: 7
+repeats: 1
+extractor: { provider: anthropic, model: claude-sonnet-5-5 }
+variants:
+  - name: claude_gemini
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: detailed } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+  - name: claude_flux
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: anthropic, model: claude-sonnet-5-5, params: { mode: detailed } }
+      - { kind: regenerate, provider: cloudflare }
+  - name: gemini_gemini
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: gemini, model: gemini-2.5-flash, params: { mode: detailed } }
+      - { kind: regenerate, provider: gemini, model: gemini-2.5-flash-image }
+  - name: gemini_flux
+    stations:
+      - { kind: platform, params: { preset: instagram } }
+      - { kind: caption, provider: gemini, model: gemini-2.5-flash, params: { mode: detailed } }
+      - { kind: regenerate, provider: cloudflare }

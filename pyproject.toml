@@ -73,3 +73,6 @@ ignore = ["E501"]
 testpaths = ["tests"]
 addopts = "-q"
 markers = ["slow: needs torch/CLIP, skipped unless -m slow or TELEPHONE_RUN_SLOW=1"]
+
+[tool.ruff.lint.per-file-ignores]
+"telephone/cli.py" = ["B008"]
