@@ -1,0 +1,75 @@
+[project]
+name = "telephone"
+version = "0.1.0"
+description = "What does a photograph keep and lose as it passes repeatedly through the systems that circulate and interpret it?"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Bardia Nasab" }]
+dependencies = [
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "typer>=0.12",
+  "rich>=13",
+  "pyyaml>=6",
+  "pillow>=10",
+  "numpy>=1.26",
+  "httpx>=0.27",
+  "anthropic>=0.60",
+  "matplotlib>=3.8",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+metrics = [
+  "torch>=2.2",
+  "torchvision>=0.17",
+  "open_clip_torch>=2.24",
+  "scikit-image>=0.22",
+  "lpips>=0.1.4",
+  "opencv-python-headless>=4.9",
+  "pytesseract>=0.3.10",
+]
+providers = [
+  "google-genai>=1.0",
+  "replicate>=1.0",
+  "openai>=1.40",
+]
+api = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.29",
+  "python-multipart>=0.0.9",
+]
+deck = ["python-pptx>=0.6.23"]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "ruff>=0.5",
+  "mypy>=1.10",
+]
+all = ["telephone[metrics,providers,api,deck,dev]"]
+
+[project.scripts]
+telephone = "telephone.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["telephone"]
+
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = ["slow: needs torch/CLIP, skipped unless -m slow or TELEPHONE_RUN_SLOW=1"]

@@ -1,0 +1,31 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+# secrets
+.env
+.env.*
+!.env.example
+# data: outputs are regenerated from the ledger; originals are the author's photographs
+data/runs/
+data/originals/*
+!data/originals/README.md
+!data/originals/.gitkeep
+data/cache/
+# web
+web/node_modules/
+web/dist/
+web/public/data/*
+!web/public/data/.gitkeep
+!web/public/data/sample/
+# deck
+log/build/
+# os
+.DS_Store
