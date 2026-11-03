@@ -27,7 +27,7 @@ metrics = [
   "open_clip_torch>=2.24",
   "scikit-image>=0.22",
   "lpips>=0.1.4",
-  "opencv-python-headless>=4.9",
+  "opencv-python-headless>=4.9,<5",
   "pytesseract>=0.3.10",
 ]
 providers = [
