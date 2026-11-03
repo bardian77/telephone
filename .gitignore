@@ -29,3 +29,6 @@ web/public/data/*
 log/build/
 # os
 .DS_Store
+
+# build info
+web/*.tsbuildinfo

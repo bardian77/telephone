@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+      - name: Install (no torch: CLIP tests are skipped in CI)
+        run: |
+          uv venv .venv
+          uv pip install --python .venv/bin/python -e ".[dev,api,providers,deck]" "scikit-image>=0.22" "opencv-python-headless>=4.9,<5"
+      - name: Lint
+        run: .venv/bin/ruff check telephone tests api log analysis && .venv/bin/ruff format --check telephone tests api log analysis
+      - name: Test
+        run: .venv/bin/pytest -q
+      - name: Smoke experiment (mock providers, no keys, no spend)
+        run: |
+          .venv/bin/telephone make-fixtures
+          .venv/bin/telephone run-experiment exp00 --no-clip
+          .venv/bin/telephone render exp00_smoke
+          .venv/bin/telephone export --out /tmp/export --experiment exp00_smoke
+          .venv/bin/python log/build_deck.py --out /tmp/deck/telephone_log.pptx
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
