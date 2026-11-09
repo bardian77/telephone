@@ -15,9 +15,9 @@ build/
 !.env.example
 # data: outputs are regenerated from the ledger; originals are the author's photographs
 data/runs/
-data/originals/*
-!data/originals/README.md
-!data/originals/.gitkeep
+# originals: the author's photographs are committed so cloud sessions keep them.
+# Keep private photos in data/originals/private/ (never committed).
+data/originals/private/
 data/cache/
 # web
 web/node_modules/
