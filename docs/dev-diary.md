@@ -144,3 +144,9 @@ warning). The default is now `ViT-B-32-quickgelu`, experiment 1 was re-run on bo
 the two machines agree to the third decimal. The corrected numbers moved: two different photos
 are 0.50 apart on CLIP rather than 0.43, and two chains now stand out where CLIP and SSIM
 disagree (the self-portrait and the abstract crop under WhatsApp). The summary says so.
+
+Reproduction check, 9 November, on Bardia's MacBook. Experiment 1 re-run from the repository
+with no key: all 480 compressed generations came out byte-identical to the cloud run. Only the
+generation-0 PNG copies (a different Pillow build writes different PNG bytes for the same
+pixels), timestamps, face counts (a broken `cv2` there) and the last decimal of CLIP and LPIPS
+differed. The compression experiment is reproducible from the repository on a second machine.
