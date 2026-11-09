@@ -22,6 +22,7 @@ from .base import (
     ProviderUnavailable,
     Timer,
 )
+from .defaults import VISION_DEFAULT_MODELS
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
@@ -30,9 +31,7 @@ class AnthropicVision:
     name = "anthropic"
     supports_seed = False
 
-    def __init__(
-        self, model: str = "claude-sonnet-5-5", api_key: str | None = None, effort: str = "low"
-    ):
+    def __init__(self, model: str | None = None, api_key: str | None = None, effort: str = "low"):
         try:
             import anthropic
         except ImportError as e:  # pragma: no cover
@@ -43,7 +42,7 @@ class AnthropicVision:
         if not key:
             raise ProviderUnavailable("ANTHROPIC_API_KEY is not set")
         self.client = anthropic.Anthropic(api_key=key, max_retries=3, timeout=120)
-        self.model = model
+        self.model = model or VISION_DEFAULT_MODELS["anthropic"]
         self.effort = effort
 
     def _image_block(self, image: bytes) -> dict[str, Any]:
@@ -94,7 +93,7 @@ class AnthropicVision:
                 ],
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         meta = {
             "stop_reason": response.stop_reason,
             "served_model": response.model,
@@ -136,7 +135,7 @@ class AnthropicVision:
                 ],
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         meta = {
             "stop_reason": response.stop_reason,
             "served_model": response.model,

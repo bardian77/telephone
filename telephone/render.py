@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 from PIL import Image, ImageDraw  # noqa: E402
 
+from . import paths  # noqa: E402
 from .imageio import fit_within  # noqa: E402
 from .ledger import Ledger  # noqa: E402
 from .metrics.survival import THRESHOLDS, first_failure  # noqa: E402
@@ -100,7 +101,7 @@ def metric_value(rec: GenerationRecord, metric: str) -> float | None:
 def contact_sheet(
     records: list[GenerationRecord], path: Path, thumb: int = 240, max_cols: int = 13
 ) -> Path:
-    recs = [r for r in records if r.error is None and Path(r.output_path).exists()]
+    recs = [r for r in records if r.error is None and paths.resolve(r.output_path).exists()]
     if not recs:
         raise ValueError("no images to lay out")
     if len(recs) > max_cols:
@@ -108,7 +109,9 @@ def contact_sheet(
         recs = [recs[i] for i in idx]
     use_clip = all(r.metrics.clip_dist_to_g0 is not None for r in recs)
     pad, label_h = 8, 34
-    tiles = [fit_within(Image.open(r.output_path).convert("RGB"), thumb) for r in recs]
+    tiles = [
+        fit_within(Image.open(paths.resolve(r.output_path)).convert("RGB"), thumb) for r in recs
+    ]
     row_h = max(t.height for t in tiles)
     w = sum(t.width for t in tiles) + pad * (len(tiles) + 1)
     h = row_h + label_h + pad * 2
@@ -143,7 +146,9 @@ def _series(
             for r in recs
             if r.error is None and (v := metric_value(r, metric)) is not None
         ]
-        if pts:
+        # a single point (generation 0 is hard-coded to 0 distance / 1 similarity even when the
+        # metric could not be computed) is not a curve
+        if len(pts) >= 2:
             out[cid] = pts
     return out
 
@@ -418,7 +423,7 @@ def render_all(experiment: str | None, out_dir: Path) -> list[Path]:
     from .config import get_settings
 
     s = get_settings()
-    ledger = Ledger(s.ledger_path, s.ledger_jsonl)
+    ledger = Ledger(s.ledger_path)
     ids = [experiment] if experiment else [row["experiment_id"] for row in ledger.experiments()]
     written: list[Path] = []
     for eid in ids:

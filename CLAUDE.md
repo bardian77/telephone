@@ -1,3 +1,6 @@
+Every session: read `docs/BRIEF.md` first. It is the plain-language brief, plan and list of decisions.
+Before running experiments, `telephone doctor` shows which keys are set, how much has been spent, and what can run now (`--mock` and `--no-extract` need no key).
+
 # Telephone
 
 Art-and-code project: a photograph is passed repeatedly through recompression, captioning and

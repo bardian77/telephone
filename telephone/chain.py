@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import paths
 from .cache import StationCache
 from .config import Settings, get_settings
 from .imageio import load_image, media_type_of, save_bytes, sha256_bytes, to_png_bytes
@@ -23,7 +24,15 @@ from .metrics import (
     ocr_stats,
     ssim_score,
 )
-from .models import Attributes, ChainConfig, GenerationRecord, Metrics, StationConfig, Survival
+from .models import (
+    Attributes,
+    ChainConfig,
+    GenerationRecord,
+    Metrics,
+    StationConfig,
+    Survival,
+    stable_hash,
+)
 from .stations import MissingFrame, Station, build_station
 from .stations.base import StationContext
 from .stations.extract import ExtractStation
@@ -31,6 +40,37 @@ from .stations.extract import ExtractStation
 log = logging.getLogger("telephone")
 
 Event = Callable[[str, dict], None]
+
+
+def config_fingerprint(
+    cfg: ChainConfig, extractor: StationConfig | None, settings: Settings
+) -> str:
+    """Hash of what actually runs: every station's resolved provider, model and params, the
+    extractor, and the seed. Providers and models left as None are resolved through the same
+    defaults the stations use, so an explicit default and an implicit one hash the same.
+
+    A ledger row is only resumed when its fingerprint matches, so a chain first run on mock
+    providers (or on a different model) can never be silently continued as a real one.
+    """
+    from .providers import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
+
+    def resolved(s: StationConfig) -> dict:
+        provider, model = s.provider, s.model
+        if s.kind in ("caption", "extract"):
+            provider = provider or settings.default_captioner
+            model = model or VISION_DEFAULT_MODELS.get(provider, provider)
+        elif s.kind == "regenerate":
+            provider = provider or settings.default_generator
+            model = model or IMAGE_DEFAULT_MODELS.get(provider, provider)
+        return {"kind": s.kind, "provider": provider, "model": model, "params": s.params}
+
+    return stable_hash(
+        {
+            "stations": [resolved(s) for s in cfg.stations],
+            "extractor": resolved(extractor) if extractor is not None else None,
+            "seed": cfg.seed,
+        }
+    )
 
 
 @dataclass
@@ -55,7 +95,7 @@ class ChainRunner:
 
     def __post_init__(self) -> None:
         if self.ledger is None:
-            self.ledger = Ledger(self.settings.ledger_path, self.settings.ledger_jsonl)
+            self.ledger = Ledger(self.settings.ledger_path)
         if self.cache is None:
             self.cache = StationCache(self.settings.cache_dir)
 
@@ -148,11 +188,30 @@ class ChainRunner:
         run_id = run_id or uuid.uuid4().hex[:12]
         stations: list[Station] = [build_station(s) for s in cfg.stations]
         records: list[GenerationRecord] = []
+        sha = config_fingerprint(cfg, self.options.extractor, self.settings)
+        warned_config = False
+
+        def resumable(rec: GenerationRecord | None) -> bool:
+            nonlocal warned_config
+            if rec is None or rec.error is not None or not paths.resolve(rec.output_path).exists():
+                return False
+            if rec.config_sha != sha:
+                if not warned_config:
+                    warned_config = True
+                    msg = (
+                        "the chain's providers, models, params or seed differ from the rows in "
+                        "the ledger; recomputing instead of resuming"
+                    )
+                    log.warning("%s: %s", cfg.chain_id, msg)
+                    self.emit("warning", chain_id=cfg.chain_id, message=msg)
+                return False
+            return True
 
         # generation 0 ---------------------------------------------------------------------
         g0_rec = self.ledger.get(cfg.chain_id, 0, cfg.repeat)
-        if g0_rec is not None and Path(g0_rec.output_path).exists():
-            g0 = Path(g0_rec.output_path).read_bytes()
+        if resumable(g0_rec):
+            assert g0_rec is not None
+            g0 = paths.resolve(g0_rec.output_path).read_bytes()
             self.emit("resume", chain_id=cfg.chain_id, generation=0)
         else:
             g0 = to_png_bytes(load_image(cfg.image))
@@ -175,8 +234,9 @@ class ChainRunner:
                 station_sequence=cfg.station_sequence(),
                 stations=ex_records,
                 seed=cfg.seed,
+                config_sha=sha,
                 input_sha=None,
-                output_path=str(g0_path),
+                output_path=paths.to_stored(g0_path),
                 output_sha=sha256_bytes(g0),
                 attributes=attrs0,
                 survival=compare_attributes(attrs0, attrs0) if attrs0 else None,
@@ -202,12 +262,9 @@ class ChainRunner:
         prev, prev_emb = g0, g0_emb
         for gen in range(1, cfg.generations + 1):
             existing = self.ledger.get(cfg.chain_id, gen, cfg.repeat)
-            if (
-                existing is not None
-                and existing.error is None
-                and Path(existing.output_path).exists()
-            ):
-                prev = Path(existing.output_path).read_bytes()
+            if resumable(existing):
+                assert existing is not None
+                prev = paths.resolve(existing.output_path).read_bytes()
                 prev_emb = self._clip_embed(prev)
                 records.append(existing)
                 self.emit("resume", chain_id=cfg.chain_id, generation=gen)
@@ -236,8 +293,7 @@ class ChainRunner:
                     if res.image is not None:
                         image = res.image
             except MissingFrame as e:
-                error = str(e)
-                self.emit("missing_frame", chain_id=cfg.chain_id, generation=gen, message=str(e))
+                error = str(e)  # reported once, through the "error" event below
 
             if error:
                 rec = GenerationRecord(
@@ -250,6 +306,7 @@ class ChainRunner:
                     stations=station_records,
                     caption=ctx.caption,
                     seed=cfg.seed,
+                    config_sha=sha,
                     input_sha=ctx.input_sha,
                     output_path="",
                     output_sha="",
@@ -283,8 +340,9 @@ class ChainRunner:
                 stations=station_records,
                 caption=ctx.caption,
                 seed=cfg.seed,
+                config_sha=sha,
                 input_sha=ctx.input_sha,
-                output_path=str(out_path),
+                output_path=paths.to_stored(out_path),
                 output_sha=sha256_bytes(image),
                 attributes=attrs,
                 survival=survival,

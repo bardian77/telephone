@@ -5,7 +5,8 @@ Layout under the output folder:
   chains/<key>.json          one file per chain (all generations, captions, metrics, survival)
   img/<key>/<gen>.jpg        thumbnails (long edge `thumb_size`)
   img/<key>/<gen>_full.jpg   viewing size (long edge 1280)
-Images listed in data/originals/private.txt (one stem per line) are excluded unless asked.
+Photographs under data/originals/private/ are excluded unless asked, and so are runs on mock
+providers (experiment ids ending in '-mock'): mock output is for tests, not for the site.
 """
 
 from __future__ import annotations
@@ -18,8 +19,9 @@ from typing import Any
 
 from PIL import Image
 
+from . import paths
 from .config import get_settings
-from .experiments import load_all
+from .experiments import MOCK_SUFFIX, load_all
 from .imageio import fit_within
 from .ledger import Ledger
 from .metrics.survival import first_failure
@@ -32,20 +34,17 @@ def chain_key(chain_id: str, repeat: int) -> str:
 
 
 def _private_stems() -> set[str]:
-    p = get_settings().originals_dir / "private.txt"
-    if not p.exists():
+    """Stems of every file under data/originals/private/: never exported unless asked."""
+    folder = get_settings().private_dir
+    if not folder.is_dir():
         return set()
-    return {
-        line.strip()
-        for line in p.read_text().splitlines()
-        if line.strip() and not line.startswith("#")
-    }
+    return {p.stem for p in folder.rglob("*") if p.is_file()}
 
 
 def _write_images(
     rec: GenerationRecord, folder: Path, thumb_size: int, full_size: int
 ) -> tuple[str | None, str | None]:
-    src = Path(rec.output_path)
+    src = paths.resolve(rec.output_path)
     if not src.exists():
         return None, None
     folder.mkdir(parents=True, exist_ok=True)
@@ -167,9 +166,10 @@ def export_all(
     include_private: bool = False,
     experiments: list[str] | None = None,
     clean: bool = False,
+    include_mock: bool = False,
 ) -> dict[str, Any]:
     s = get_settings()
-    ledger = Ledger(s.ledger_path, s.ledger_jsonl)
+    ledger = Ledger(s.ledger_path)
     defs = load_all()
     private = set() if include_private else _private_stems()
     out = Path(out)
@@ -181,6 +181,8 @@ def export_all(
     for row in ledger.experiments():
         eid = row["experiment_id"]
         if experiments and eid not in experiments:
+            continue
+        if eid.endswith(MOCK_SUFFIX) and not include_mock:
             continue
         records = ledger.experiment(eid)
         by_chain: dict[tuple[str, int], list[GenerationRecord]] = {}

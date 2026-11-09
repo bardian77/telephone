@@ -17,6 +17,7 @@ from .base import (
     ProviderUnavailable,
     Timer,
 )
+from .defaults import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
 
 
 def _client(api_key: str | None):
@@ -36,9 +37,9 @@ class OpenAIVision:
     name = "openai"
     supports_seed = False
 
-    def __init__(self, model: str = "gpt-5-mini", api_key: str | None = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None):
         self.client = _client(api_key)
-        self.model = model
+        self.model = model or VISION_DEFAULT_MODELS["openai"]
 
     def _messages(self, image: bytes, prompt: str) -> list[dict[str, Any]]:
         uri = f"data:{media_type_of(image)};base64,{to_base64(image)}"
@@ -71,7 +72,7 @@ class OpenAIVision:
                 model=self.model, messages=self._messages(image, CAPTION_PROMPTS[mode])
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         text = (response.choices[0].message.content or "").strip()
         if not text:
             raise ProviderRefusal("OpenAI returned no text")
@@ -92,7 +93,7 @@ class OpenAIVision:
                 response_format=Attributes,
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         parsed = response.choices[0].message.parsed
         if parsed is None:
             raise ProviderRefusal("OpenAI returned no structured output")
@@ -103,11 +104,9 @@ class OpenAIImageGen:
     name = "openai"
     supports_seed = False
 
-    def __init__(
-        self, model: str = "gpt-image-1-mini", api_key: str | None = None, quality: str = "low"
-    ):
+    def __init__(self, model: str | None = None, api_key: str | None = None, quality: str = "low"):
         self.client = _client(api_key)
-        self.model = model
+        self.model = model or IMAGE_DEFAULT_MODELS["openai"]
         self.quality = quality
 
     def generate(
@@ -130,5 +129,5 @@ class OpenAIImageGen:
         if not b64:
             raise ProviderRefusal("OpenAI returned no image")
         usage = Usage(images=1, cost_usd=price, list_price_usd=price, latency_ms=t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         return base64.b64decode(b64), usage, {"size": size, "quality": self.quality}

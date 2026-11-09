@@ -15,10 +15,20 @@ build/
 !.env.example
 # data: outputs are regenerated from the ledger; originals are the author's photographs
 data/runs/
+# the run ledger is local state; committed results live in data/results/
+data/ledger.sqlite
+data/ledger.sqlite-journal
+data/ledger.jsonl
 # originals: the author's photographs are committed so cloud sessions keep them.
 # Keep private photos in data/originals/private/ (never committed).
-data/originals/private/
+data/originals/private/*
+!data/originals/private/README.md
 data/cache/
+# per-chain contact sheets are regenerated from data/runs by `telephone render`
+data/figures/*/contact_sheets/
+# figures of mock runs are not results
+data/figures/adhoc/
+data/figures/exp00_smoke/
 # web
 web/node_modules/
 web/dist/

@@ -1,6 +1,9 @@
-"""Run ledger: one row per generation, in SQLite (queryable) and JSONL (greppable, diffable).
+"""Run ledger: one row per generation in SQLite, plus an append-only spend log.
 
 The ledger is the single source of truth. Figures, the web export and the API all read it.
+It is local state (ignored by git). To keep results, `save_results` writes one experiment as a
+sorted JSONL snapshot that can be committed and read back with `import_jsonl`; there is no live
+JSONL mirror, because an append-only mirror of an upsert table drifts from it.
 """
 
 from __future__ import annotations
@@ -11,7 +14,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from .models import GenerationRecord
+from .models import GenerationRecord, now_iso
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS generations (
@@ -34,17 +37,44 @@ CREATE TABLE IF NOT EXISTS generations (
 );
 CREATE INDEX IF NOT EXISTS idx_gen_experiment ON generations(experiment_id);
 CREATE INDEX IF NOT EXISTS idx_gen_run ON generations(run_id);
+CREATE TABLE IF NOT EXISTS spend (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    provider TEXT,
+    model TEXT,
+    cost_usd REAL NOT NULL DEFAULT 0,
+    list_price_usd REAL NOT NULL DEFAULT 0
+);
 """
 
 
 class Ledger:
-    def __init__(self, sqlite_path: Path, jsonl_path: Path | None = None):
+    def __init__(self, sqlite_path: Path, check_same_thread: bool = True):
         self.sqlite_path = Path(sqlite_path)
-        self.jsonl_path = Path(jsonl_path) if jsonl_path else None
         self.sqlite_path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.sqlite_path)
+        self.conn = sqlite3.connect(self.sqlite_path, check_same_thread=check_same_thread)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+
+    # -- spend log: append-only, one row per paid call --------------------------------------
+    def log_spend(
+        self, provider: str | None, model: str | None, cost_usd: float, list_price_usd: float
+    ) -> None:
+        """Record one provider call. Rows are never replaced or deleted, so the sum is the
+        true lifetime spend even when generation rows are re-run or served from the cache."""
+        self.conn.execute(
+            "INSERT INTO spend (created_at, provider, model, cost_usd, list_price_usd) "
+            "VALUES (?,?,?,?,?)",
+            (now_iso(), provider, model, float(cost_usd), float(list_price_usd)),
+        )
+        self.conn.commit()
+
+    def total_spend(self) -> tuple[float, float]:
+        """(paid USD, list-price USD) summed over the spend log."""
+        r = self.conn.execute(
+            "SELECT COALESCE(SUM(cost_usd),0), COALESCE(SUM(list_price_usd),0) FROM spend"
+        ).fetchone()
+        return float(r[0]), float(r[1])
 
     def close(self) -> None:
         self.conn.close()
@@ -75,10 +105,6 @@ class Ledger:
             ),
         )
         self.conn.commit()
-        if self.jsonl_path:
-            self.jsonl_path.parent.mkdir(parents=True, exist_ok=True)
-            with self.jsonl_path.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(row, sort_keys=True) + "\n")
 
     def has(self, chain_id: str, generation: int, repeat: int = 0) -> bool:
         cur = self.conn.execute(
@@ -151,7 +177,24 @@ class Ledger:
         self.conn.commit()
         return cur.rowcount
 
+    def save_results(self, experiment_id: str, path: Path) -> int:
+        """Write every row of one experiment as sorted JSONL (chain, repeat, generation).
+
+        The file is a snapshot of SQLite, written whole each time, so it never drifts from the
+        database and is safe to commit. `import_jsonl` reads it back.
+        """
+        recs = self.experiment(experiment_id)
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        with tmp.open("w", encoding="utf-8") as f:
+            for rec in recs:
+                f.write(json.dumps(rec.to_row(), sort_keys=True) + "\n")
+        tmp.replace(path)
+        return len(recs)
+
     def import_jsonl(self, path: Path) -> int:
+        """Load a `save_results` file. Rows with the same key replace existing ones."""
         n = 0
         for line in Path(path).read_text(encoding="utf-8").splitlines():
             if line.strip():

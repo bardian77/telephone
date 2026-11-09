@@ -155,6 +155,11 @@ class GenerationRecord(BaseModel):
         default=None, description="Caption that produced this generation, if any"
     )
     seed: int | None = None
+    config_sha: str | None = Field(
+        default=None,
+        description="Fingerprint of the resolved station and extractor configuration that "
+        "produced this row. A chain is only resumed from rows with the same fingerprint.",
+    )
     input_sha: str | None = None
     output_path: str
     output_sha: str

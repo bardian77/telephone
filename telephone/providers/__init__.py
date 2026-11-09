@@ -3,20 +3,7 @@
 from __future__ import annotations
 
 from .base import ImageGenProvider, ProviderRefusal, ProviderUnavailable, VisionProvider
-
-VISION_DEFAULT_MODELS = {
-    "anthropic": "claude-sonnet-5-5",
-    "gemini": "gemini-2.5-flash",
-    "openai": "gpt-5-mini",
-    "mock": "mock-vision",
-}
-IMAGE_DEFAULT_MODELS = {
-    "gemini": "gemini-2.5-flash-image",
-    "cloudflare": "@cf/black-forest-labs/flux-1-schnell",
-    "replicate": "black-forest-labs/flux-schnell",
-    "openai": "gpt-image-1-mini",
-    "mock": "mock-gen",
-}
+from .defaults import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
 
 _vision_cache: dict[tuple[str, str], VisionProvider] = {}
 _image_cache: dict[tuple[str, str], ImageGenProvider] = {}
@@ -90,6 +77,8 @@ def clear_provider_cache() -> None:
 
 
 __all__ = [
+    "IMAGE_DEFAULT_MODELS",
+    "VISION_DEFAULT_MODELS",
     "ImageGenProvider",
     "ProviderRefusal",
     "ProviderUnavailable",

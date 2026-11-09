@@ -11,6 +11,7 @@ from ..cost import get_tracker, image_list_price
 from ..models import Usage
 from ..ratelimit import wait_for
 from .base import ProviderRefusal, ProviderUnavailable, Timer
+from .defaults import IMAGE_DEFAULT_MODELS
 
 
 class CloudflareFluxGen:
@@ -19,7 +20,7 @@ class CloudflareFluxGen:
 
     def __init__(
         self,
-        model: str = "@cf/black-forest-labs/flux-1-schnell",
+        model: str | None = None,
         account_id: str | None = None,
         token: str | None = None,
         steps: int = 4,
@@ -31,7 +32,7 @@ class CloudflareFluxGen:
         self.token = token or s.cloudflare_api_token
         if not (self.account_id and self.token):
             raise ProviderUnavailable("CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are not set")
-        self.model = model
+        self.model = model or IMAGE_DEFAULT_MODELS["cloudflare"]
         self.steps = min(max(steps, 1), 8)
         self.client = httpx.Client(timeout=120)
 
@@ -59,5 +60,5 @@ class CloudflareFluxGen:
             raise ProviderRefusal("Cloudflare returned no image")
         data = base64.b64decode(b64)
         usage = Usage(images=1, cost_usd=0.0, list_price_usd=price, latency_ms=t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         return data, usage, {"steps": self.steps, "seed": body.get("seed")}

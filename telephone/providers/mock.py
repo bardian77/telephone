@@ -17,6 +17,7 @@ from PIL import Image, ImageDraw
 from ..imageio import from_bytes, to_png_bytes
 from ..models import Attributes, Usage
 from .base import CaptionMode
+from .defaults import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
 
 OBJECTS = [
     "bicycle",
@@ -86,8 +87,8 @@ class MockVision:
     name = "mock"
     supports_seed = True
 
-    def __init__(self, model: str = "mock-vision", drift: float = 0.25):
-        self.model = model
+    def __init__(self, model: str | None = None, drift: float = 0.25):
+        self.model = model or VISION_DEFAULT_MODELS["mock"]
         self.drift = drift  # probability each object is swapped per reading
 
     def _read(self, image: bytes) -> dict[str, Any]:
@@ -144,8 +145,8 @@ class MockImageGen:
     name = "mock"
     supports_seed = True
 
-    def __init__(self, model: str = "mock-gen"):
-        self.model = model
+    def __init__(self, model: str | None = None):
+        self.model = model or IMAGE_DEFAULT_MODELS["mock"]
 
     def generate(
         self, prompt: str, seed: int | None = None, width: int = 1024, height: int = 1024

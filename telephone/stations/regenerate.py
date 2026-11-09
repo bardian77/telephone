@@ -61,15 +61,13 @@ class RegenerateStation(Station):
         return StationResult(image=data, record=record, caption=ctx.caption)
 
     def estimated_cost_usd(self) -> float:
-        prov = self.cfg.provider or "gemini"
+        from ..config import get_settings
+        from ..providers.defaults import image_model
+
+        settings = get_settings()
+        prov = self.cfg.provider or settings.default_generator
         if prov in ("mock", "cloudflare"):
             return 0.0
-        if prov == "gemini":
-            from ..config import get_settings
-
-            return (
-                0.0
-                if get_settings().gemini_free_tier
-                else image_list_price(self.cfg.model or "gemini-2.5-flash-image")
-            )
-        return image_list_price(self.cfg.model or prov)
+        if prov == "gemini" and settings.gemini_free_tier:
+            return 0.0
+        return image_list_price(image_model(prov, self.cfg.model))

@@ -23,8 +23,6 @@ from telephone.render import (  # noqa: E402
     render_all,
 )
 
-OUT = Path("data/figures")
-
 
 def cross_experiment(ledger: Ledger, out: Path) -> Path | None:
     """One chart: mean CLIP drift per experiment, so compression vs AI vs physical sit on one axis."""
@@ -70,9 +68,10 @@ def cross_experiment(ledger: Ledger, out: Path) -> Path | None:
 
 if __name__ == "__main__":
     s = get_settings()
-    written = render_all(None, OUT)
-    led = Ledger(s.ledger_path, s.ledger_jsonl)
-    p = cross_experiment(led, OUT)
+    out = s.figures_dir
+    written = render_all(None, out)
+    led = Ledger(s.ledger_path)
+    p = cross_experiment(led, out)
     if p:
         written.append(p)
-    print(json.dumps({"figures": len(written), "folder": str(OUT)}))
+    print(json.dumps({"figures": len(written), "folder": str(out)}))

@@ -1,4 +1,8 @@
-"""Gemini: free-tier vision (second captioner) and Gemini 2.5 Flash Image (default generator)."""
+"""Gemini: vision (second captioner) and Gemini 2.5 Flash Image (default generator).
+
+Calls are costed at list price unless GEMINI_FREE_TIER=1 is set, in which case cost_usd is 0 and
+only list_price_usd is recorded. The default assumes you are billed; that is the honest default.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +21,7 @@ from .base import (
     ProviderUnavailable,
     Timer,
 )
+from .defaults import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
 
 
 def _client(api_key: str | None):
@@ -29,7 +34,7 @@ def _client(api_key: str | None):
     key = api_key or get_settings().gemini_api_key
     if not key:
         raise ProviderUnavailable(
-            "GEMINI_API_KEY is not set (free key at https://aistudio.google.com)"
+            "GEMINI_API_KEY is not set (get a key at https://aistudio.google.com)"
         )
     return genai.Client(api_key=key)
 
@@ -58,9 +63,9 @@ class GeminiVision:
     name = "gemini"
     supports_seed = False
 
-    def __init__(self, model: str = "gemini-2.5-flash", api_key: str | None = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None):
         self.client = _client(api_key)
-        self.model = model
+        self.model = model or VISION_DEFAULT_MODELS["gemini"]
 
     def _parts(self, image: bytes, prompt: str) -> list[Any]:
         from google.genai import types
@@ -78,7 +83,7 @@ class GeminiVision:
                 model=self.model, contents=self._parts(image, CAPTION_PROMPTS[mode])
             )
         usage = _text_usage(response, self.model, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         text = (response.text or "").strip()
         if not text:
             raise ProviderRefusal("Gemini returned no text (possibly blocked by safety filters)")
@@ -99,7 +104,7 @@ class GeminiVision:
                 ),
             )
         usage = _text_usage(response, self.model, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         parsed = getattr(response, "parsed", None)
         if parsed is None:
             if not response.text:
@@ -114,9 +119,9 @@ class GeminiImageGen:
     name = "gemini"
     supports_seed = False  # the API accepts a seed but does not promise determinism
 
-    def __init__(self, model: str = "gemini-2.5-flash-image", api_key: str | None = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None):
         self.client = _client(api_key)
-        self.model = model
+        self.model = model or IMAGE_DEFAULT_MODELS["gemini"]
 
     def generate(
         self, prompt: str, seed: int | None = None, width: int = 1024, height: int = 1024
@@ -156,7 +161,7 @@ class GeminiImageGen:
         if um is not None:
             usage.input_tokens = int(getattr(um, "prompt_token_count", 0) or 0)
             usage.output_tokens = int(getattr(um, "candidates_token_count", 0) or 0)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         if data is None:
             fr = None
             with contextlib.suppress(Exception):
