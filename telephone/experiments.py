@@ -77,9 +77,28 @@ class Experiment:
         reps = repeats or self.repeats
         chains: list[ChainConfig] = []
         for variant in self.variants:
-            stations = [StationConfig(**s) for s in variant["stations"]]
             for img in imgs:
                 for r in range(reps):
+                    fill = {
+                        "image_stem": img.stem,
+                        "experiment_id": self.id,
+                        "variant": variant["name"],
+                        "repeat": r,
+                    }
+                    # fresh StationConfig objects per chain: a chain must never share mutable
+                    # params with another chain (the --physical-root override edits them)
+                    stations = [
+                        StationConfig(
+                            **{
+                                **s,
+                                "params": {
+                                    k: _fill_placeholders(v, fill)
+                                    for k, v in (s.get("params") or {}).items()
+                                },
+                            }
+                        )
+                        for s in variant["stations"]
+                    ]
                     chains.append(
                         ChainConfig(
                             chain_id=f"{self.id}__{variant['name']}__{img.stem}",
@@ -109,6 +128,50 @@ class Experiment:
             "extractor": self.extractor,
             "references": self.references,
         }
+
+
+PLACEHOLDERS = ("image_stem", "experiment_id", "variant", "repeat")
+
+
+def _fill_placeholders(value: Any, fill: dict[str, Any]) -> Any:
+    """Substitute the known {placeholders} in a string param; anything else is left alone."""
+    if not isinstance(value, str) or "{" not in value:
+        return value
+    for key in PLACEHOLDERS:
+        value = value.replace("{" + key + "}", str(fill[key]))
+    return value
+
+
+MOCK_SUFFIX = "-mock"
+
+
+def mockify(chain: ChainConfig) -> ChainConfig:
+    """A copy of the chain with every model station on the mock provider.
+
+    The experiment id gets a '-mock' suffix (a hyphen: the chain id parser splits on '__'), so
+    mock rows never share a chain id with real ones and can never be resumed as real results.
+    An experiment that already declares mock providers everywhere keeps its id.
+    """
+    model_stations = [s for s in chain.stations if s.kind in ("caption", "regenerate", "extract")]
+    already_mock = bool(model_stations) and all(s.provider == "mock" for s in model_stations)
+    stations = [
+        s.model_copy(update={"provider": "mock", "model": None})
+        if s.kind in ("caption", "regenerate", "extract")
+        else s.model_copy(deep=True)
+        for s in chain.stations
+    ]
+    if already_mock or chain.experiment_id.endswith(MOCK_SUFFIX):
+        return chain.model_copy(update={"stations": stations})
+    new_exp = chain.experiment_id + MOCK_SUFFIX
+    prefix = chain.experiment_id + "__"
+    new_chain = (
+        new_exp + "__" + chain.chain_id[len(prefix) :]
+        if chain.chain_id.startswith(prefix)
+        else new_exp + "__" + chain.chain_id
+    )
+    return chain.model_copy(
+        update={"experiment_id": new_exp, "chain_id": new_chain, "stations": stations}
+    )
 
 
 def load_all(folder: Path = Path("experiments")) -> dict[str, Experiment]:

@@ -94,7 +94,7 @@ class AnthropicVision:
                 ],
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         meta = {
             "stop_reason": response.stop_reason,
             "served_model": response.model,
@@ -136,7 +136,7 @@ class AnthropicVision:
                 ],
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         meta = {
             "stop_reason": response.stop_reason,
             "served_model": response.model,

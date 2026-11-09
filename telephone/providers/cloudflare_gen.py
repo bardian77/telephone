@@ -59,5 +59,5 @@ class CloudflareFluxGen:
             raise ProviderRefusal("Cloudflare returned no image")
         data = base64.b64decode(b64)
         usage = Usage(images=1, cost_usd=0.0, list_price_usd=price, latency_ms=t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         return data, usage, {"steps": self.steps, "seed": body.get("seed")}

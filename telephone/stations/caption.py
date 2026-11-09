@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from ..cost import text_list_price
 from ..imageio import from_bytes, prepare_for_vision_api
 from ..models import StationRecord, Usage
 from ..providers import ProviderRefusal, get_vision_provider
-from .base import Station, StationContext, StationResult
+from .base import Station, StationContext, StationResult, estimate_vision_call
 
 
 class CaptionStation(Station):
@@ -46,9 +45,4 @@ class CaptionStation(Station):
         return res
 
     def estimated_cost_usd(self) -> float:
-        model = self.cfg.model or "claude-sonnet-5-5"
-        return (
-            text_list_price(model, 2000, 400)
-            if (self.cfg.provider or "anthropic") in ("anthropic", "openai")
-            else 0.0
-        )
+        return estimate_vision_call(self.cfg, output_tokens=400)

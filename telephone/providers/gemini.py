@@ -1,4 +1,8 @@
-"""Gemini: free-tier vision (second captioner) and Gemini 2.5 Flash Image (default generator)."""
+"""Gemini: vision (second captioner) and Gemini 2.5 Flash Image (default generator).
+
+Calls are costed at list price unless GEMINI_FREE_TIER=1 is set, in which case cost_usd is 0 and
+only list_price_usd is recorded. The default assumes you are billed; that is the honest default.
+"""
 
 from __future__ import annotations
 
@@ -78,7 +82,7 @@ class GeminiVision:
                 model=self.model, contents=self._parts(image, CAPTION_PROMPTS[mode])
             )
         usage = _text_usage(response, self.model, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         text = (response.text or "").strip()
         if not text:
             raise ProviderRefusal("Gemini returned no text (possibly blocked by safety filters)")
@@ -99,7 +103,7 @@ class GeminiVision:
                 ),
             )
         usage = _text_usage(response, self.model, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         parsed = getattr(response, "parsed", None)
         if parsed is None:
             if not response.text:
@@ -156,7 +160,7 @@ class GeminiImageGen:
         if um is not None:
             usage.input_tokens = int(getattr(um, "prompt_token_count", 0) or 0)
             usage.output_tokens = int(getattr(um, "candidates_token_count", 0) or 0)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         if data is None:
             fr = None
             with contextlib.suppress(Exception):

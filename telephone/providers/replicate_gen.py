@@ -54,5 +54,5 @@ class ReplicateFluxGen:
             f.read() if hasattr(f, "read") else __import__("httpx").get(str(f), timeout=120).content
         )
         usage = Usage(images=1, cost_usd=price, list_price_usd=price, latency_ms=t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         return data, usage, {"seed": inputs.get("seed")}

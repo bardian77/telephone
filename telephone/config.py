@@ -21,9 +21,16 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
 
     # money
-    telephone_spend_cap_usd: float = Field(20.0, description="Hard stop for a single process")
+    telephone_spend_cap_usd: float = Field(
+        15.0,
+        description="Hard stop on lifetime API spend for this project, in USD. Counted from the "
+        "ledger's append-only spend log, so it survives restarts and new processes.",
+    )
     gemini_free_tier: bool = Field(
-        True, description="If true, Gemini calls are costed at 0 but list price is still recorded"
+        False,
+        description="Set GEMINI_FREE_TIER=1 only if your Gemini key really is on the free tier. "
+        "Then Gemini calls are costed at 0 and only the list price is recorded. By default "
+        "Gemini is billed at list price, which is the honest assumption.",
     )
 
     # paths
@@ -55,8 +62,8 @@ class Settings(BaseSettings):
         return self.telephone_data_dir / "ledger.sqlite"
 
     @property
-    def ledger_jsonl(self) -> Path:
-        return self.telephone_data_dir / "ledger.jsonl"
+    def results_dir(self) -> Path:
+        return self.telephone_data_dir / "results"
 
     @property
     def originals_dir(self) -> Path:

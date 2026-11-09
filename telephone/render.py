@@ -420,7 +420,7 @@ def render_all(experiment: str | None, out_dir: Path) -> list[Path]:
     from .config import get_settings
 
     s = get_settings()
-    ledger = Ledger(s.ledger_path, s.ledger_jsonl)
+    ledger = Ledger(s.ledger_path)
     ids = [experiment] if experiment else [row["experiment_id"] for row in ledger.experiments()]
     written: list[Path] = []
     for eid in ids:

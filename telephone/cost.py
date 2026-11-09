@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
+from typing import Any
 
 from .models import Usage
 
@@ -58,16 +59,20 @@ def image_list_price(model: str, images: int = 1) -> float:
 
 @dataclass
 class SpendTracker:
-    """Process-wide running total with a hard cap. Thread safe.
+    """Lifetime running total with a hard cap. Thread safe.
 
-    Call `reserve(estimate)` before a paid call so the cap is enforced before money moves,
-    then `commit(usage)` with the real figure afterwards.
+    `total_usd` starts from the ledger's append-only spend log, so the cap counts every paid
+    call this project has ever made, not just this process. Call `reserve(estimate)` before a
+    paid call so the cap is enforced before money moves, then `commit(usage, provider, model)`
+    with the real figure afterwards; commit also appends to the spend log.
     """
 
     cap_usd: float
     total_usd: float = 0.0
     total_list_usd: float = 0.0
+    session_usd: float = 0.0  # spent by this process only
     calls: int = 0
+    ledger: Any | None = field(default=None, repr=False)  # a telephone.ledger.Ledger
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     def reserve(self, estimate_usd: float) -> None:
@@ -75,15 +80,18 @@ class SpendTracker:
             if self.total_usd + estimate_usd > self.cap_usd:
                 raise SpendCapExceeded(
                     f"Spend cap {self.cap_usd:.2f} USD would be exceeded: "
-                    f"spent {self.total_usd:.4f}, next call ~{estimate_usd:.4f}. "
+                    f"spent {self.total_usd:.4f} so far, next call ~{estimate_usd:.4f}. "
                     "Raise TELEPHONE_SPEND_CAP_USD to continue."
                 )
 
-    def commit(self, usage: Usage) -> None:
+    def commit(self, usage: Usage, provider: str | None = None, model: str | None = None) -> None:
         with self._lock:
             self.total_usd += usage.cost_usd
             self.total_list_usd += usage.list_price_usd
+            self.session_usd += usage.cost_usd
             self.calls += 1
+            if self.ledger is not None:
+                self.ledger.log_spend(provider, model, usage.cost_usd, usage.list_price_usd)
 
     def remaining(self) -> float:
         return max(0.0, self.cap_usd - self.total_usd)
@@ -94,15 +102,21 @@ _tracker_lock = threading.Lock()
 
 
 def get_tracker(cap_usd: float | None = None) -> SpendTracker:
-    """Singleton per process. First caller sets the cap (or it comes from settings)."""
+    """Singleton per process, seeded from the ledger's spend log on first use."""
     global _tracker
     with _tracker_lock:
         if _tracker is None:
-            if cap_usd is None:
-                from .config import get_settings
+            from .config import get_settings
+            from .ledger import Ledger
 
-                cap_usd = get_settings().telephone_spend_cap_usd
-            _tracker = SpendTracker(cap_usd=cap_usd)
+            settings = get_settings()
+            if cap_usd is None:
+                cap_usd = settings.telephone_spend_cap_usd
+            ledger = Ledger(settings.ledger_path, check_same_thread=False)
+            paid, listp = ledger.total_spend()
+            _tracker = SpendTracker(
+                cap_usd=cap_usd, total_usd=paid, total_list_usd=listp, ledger=ledger
+            )
         return _tracker
 
 

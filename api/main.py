@@ -154,7 +154,7 @@ def _find_original(stem: str) -> Path:
 def _worker() -> None:
     from telephone.chain import ChainRunner, RunnerOptions
 
-    ledger = Ledger(settings.ledger_path, settings.ledger_jsonl)
+    ledger = Ledger(settings.ledger_path)
     while True:
         with jobs_lock:
             job_id = queue.popleft() if queue else None

@@ -71,7 +71,7 @@ def cross_experiment(ledger: Ledger, out: Path) -> Path | None:
 if __name__ == "__main__":
     s = get_settings()
     written = render_all(None, OUT)
-    led = Ledger(s.ledger_path, s.ledger_jsonl)
+    led = Ledger(s.ledger_path)
     p = cross_experiment(led, OUT)
     if p:
         written.append(p)

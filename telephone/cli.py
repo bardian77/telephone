@@ -41,7 +41,7 @@ def _runner(
             )
         elif kind == "resume":
             console.print(f"  g{data['generation']:02d}  (already in ledger)", style="dim")
-        elif kind in ("error", "missing_frame"):
+        elif kind == "error":
             console.print(f"  g{data['generation']:02d}  STOP: {data['message']}", style="bold red")
         elif kind == "warning":
             console.print(f"  warning: {data['message']}", style="yellow")
@@ -144,6 +144,9 @@ def run_chain(
     )
     runner = _runner(ex, clip=not no_clip, lpips=lpips)
     console.rule(f"[bold]{cfg.chain_id}[/]  {cfg.station_sequence()}  x{cfg.generations}")
+    calls, est = runner.estimate(cfg)
+    console.print(f"estimate: {calls} paid calls, about ${est:.3f} (cache ignored)", style="dim")
+    _check_budget(est)
     recs = runner.run(cfg)
     _cost_line(runner)
     console.print(f"{len(recs)} generations in ledger at {s.ledger_path}")
@@ -154,9 +157,26 @@ def _cost_line(runner) -> None:
 
     t = get_tracker()
     console.print(
-        f"spent ${t.total_usd:.4f} this process (list price ${t.total_list_usd:.4f}, cap ${t.cap_usd:.2f}); cache {runner.cache.stats()}",
+        f"this run spent ${t.session_usd:.4f}; total so far ${t.total_usd:.4f} of the "
+        f"${t.cap_usd:.2f} cap (${t.remaining():.2f} left; list price total "
+        f"${t.total_list_usd:.4f}); cache {runner.cache.stats()}",
         style="dim",
     )
+
+
+def _check_budget(estimate_usd: float) -> None:
+    """Refuse to start when the estimate does not fit in what is left of the lifetime cap."""
+    from .cost import get_tracker
+
+    t = get_tracker()
+    if estimate_usd > t.remaining():
+        console.print(
+            f"[red]Estimated cost ${estimate_usd:.2f} exceeds the remaining budget "
+            f"${t.remaining():.2f} (spent ${t.total_usd:.2f} of the ${t.cap_usd:.2f} cap, "
+            "TELEPHONE_SPEND_CAP_USD). Run less (--limit, --variant, --generations) or raise "
+            "the cap."
+        )
+        raise typer.Exit(2)
 
 
 @app.command("run-experiment")
@@ -222,18 +242,16 @@ def run_experiment(
         )
     table.add_row("[bold]total", "", "", f"[bold]{total_calls}", f"[bold]{total_cost:.3f}")
     console.print(table)
+    s = get_settings()
+    billing = "free tier, costed at 0" if s.gemini_free_tier else "list price"
     console.print(
-        "Estimates ignore the cache and free tiers count as 0; list prices are logged per call.",
+        f"Estimates ignore the cache. Gemini is billed at {billing} (GEMINI_FREE_TIER); mock and "
+        "Cloudflare cost 0. List prices are logged per call.",
         style="dim",
     )
     if dry_run:
         return
-    s = get_settings()
-    if total_cost > s.telephone_spend_cap_usd:
-        console.print(
-            f"[red]Estimated cost {total_cost:.2f} exceeds TELEPHONE_SPEND_CAP_USD={s.telephone_spend_cap_usd}. Raise the cap or use --limit."
-        )
-        raise typer.Exit(2)
+    _check_budget(total_cost)
     for i, c in enumerate(chains, 1):
         console.rule(
             f"[bold]{i}/{len(chains)} {c.chain_id}[/]  {c.station_sequence()}  x{c.generations}"
@@ -269,7 +287,7 @@ def list_cmd(experiment: str = typer.Option(None)):
     if not s.ledger_path.exists():
         console.print("ledger: empty", style="dim")
         return
-    led = Ledger(s.ledger_path, s.ledger_jsonl)
+    led = Ledger(s.ledger_path)
     t2 = Table(title=f"ledger {s.ledger_path}")
     for col in (
         "experiment_id",
@@ -304,8 +322,22 @@ def cost():
         console.print("ledger: empty")
         return
     led = Ledger(s.ledger_path)
-    paid, listp = led.total_cost()
-    console.print(f"paid ${paid:.4f}   list price ${listp:.4f}")
+    paid, listp = led.total_spend()
+    cap = s.telephone_spend_cap_usd
+    console.print(
+        f"paid so far ${paid:.4f} of the ${cap:.2f} cap (${max(0.0, cap - paid):.2f} left); "
+        f"list price ${listp:.4f}"
+    )
+    console.print(
+        "Gemini billing: " + ("free tier, costed at 0" if s.gemini_free_tier else "list price"),
+        style="dim",
+    )
+    rec_paid, rec_list = led.total_cost()
+    console.print(
+        f"recorded on generation rows: paid ${rec_paid:.4f}, list ${rec_list:.4f} "
+        "(re-runs replace rows and cache hits copy old costs, so this can differ from the total)",
+        style="dim",
+    )
     for row in led.experiments():
         console.print(
             f"  {row['experiment_id']:<24} chains {row['chains']:>3}  gens {row['generations']:>4}  paid ${row['cost_usd']:.4f}  list ${row['list_price_usd']:.4f}"
@@ -332,7 +364,7 @@ def save_results(
             console.print(f"[red]No experiment {experiment!r} in the ledger. Known: {known}")
             raise typer.Exit(1)
         experiment = matches[0]
-    path = out or s.telephone_data_dir / "results" / f"{experiment}.jsonl"
+    path = out or s.results_dir / f"{experiment}.jsonl"
     n = led.save_results(experiment, path)
     console.print(f"wrote {n} rows to {path}")
 

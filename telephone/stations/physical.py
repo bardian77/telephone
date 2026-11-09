@@ -25,7 +25,14 @@ class PhysicalStation(Station):
     kind = "physical"
 
     def frames(self) -> list[Path]:
-        folder = Path(self.cfg.params["folder"])
+        raw = str(self.cfg.params["folder"])
+        if "{" in raw:
+            raise ValueError(
+                f"physical station folder {raw!r} still contains a placeholder such as "
+                "{image_stem}. Experiments fill it per image; for an ad-hoc chain give the real "
+                "folder, or pass --physical-root to run-experiment."
+            )
+        folder = Path(raw)
         return (
             sorted(p for p in folder.iterdir() if p.suffix.lower() in EXTS)
             if folder.exists()

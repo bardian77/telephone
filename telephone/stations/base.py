@@ -80,3 +80,23 @@ class Station:
 
     def estimated_cost_usd(self) -> float:
         return 0.0
+
+
+def estimate_vision_call(cfg: StationConfig, output_tokens: int, input_tokens: int = 2000) -> float:
+    """Estimated USD for one caption or extract call, at list price unless the provider is free.
+
+    The provider and model are resolved the same way the station resolves them at run time, so
+    the dry-run estimate matches what will actually be called.
+    """
+    from ..config import get_settings
+    from ..cost import text_list_price
+    from ..providers import VISION_DEFAULT_MODELS
+
+    settings = get_settings()
+    provider = cfg.provider or settings.default_captioner
+    if provider == "mock":
+        return 0.0
+    if provider == "gemini" and settings.gemini_free_tier:
+        return 0.0
+    model = cfg.model or VISION_DEFAULT_MODELS.get(provider, provider)
+    return text_list_price(model, input_tokens, output_tokens)

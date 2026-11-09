@@ -63,7 +63,8 @@ def test_estimate_counts_paid_calls(tmp_path):
     )
     calls, cost = runner.estimate(cfg)
     assert calls == 4 * 3 + 1  # caption+regen+extract per gen, extract at g0
-    assert 0.01 < cost < 0.2  # Sonnet calls only; Gemini free tier is 0
+    # Sonnet caption + extract per generation plus 4 Gemini images at list price (0.039 each)
+    assert 0.15 < cost < 0.5
 
 
 def test_experiments_load_and_expand(tmp_path):

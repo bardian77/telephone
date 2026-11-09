@@ -71,7 +71,7 @@ class OpenAIVision:
                 model=self.model, messages=self._messages(image, CAPTION_PROMPTS[mode])
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         text = (response.choices[0].message.content or "").strip()
         if not text:
             raise ProviderRefusal("OpenAI returned no text")
@@ -92,7 +92,7 @@ class OpenAIVision:
                 response_format=Attributes,
             )
         usage = self._usage(response, t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         parsed = response.choices[0].message.parsed
         if parsed is None:
             raise ProviderRefusal("OpenAI returned no structured output")
@@ -130,5 +130,5 @@ class OpenAIImageGen:
         if not b64:
             raise ProviderRefusal("OpenAI returned no image")
         usage = Usage(images=1, cost_usd=price, list_price_usd=price, latency_ms=t.ms)
-        tracker.commit(usage)
+        tracker.commit(usage, provider=self.name, model=self.model)
         return base64.b64decode(b64), usage, {"size": size, "quality": self.quality}

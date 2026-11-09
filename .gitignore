@@ -25,6 +25,9 @@ data/originals/private/
 data/cache/
 # per-chain contact sheets are regenerated from data/runs by `telephone render`
 data/figures/*/contact_sheets/
+# figures of mock runs are not results
+data/figures/adhoc/
+data/figures/exp00_smoke/
 # web
 web/node_modules/
 web/dist/

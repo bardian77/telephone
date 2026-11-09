@@ -169,7 +169,7 @@ def export_all(
     clean: bool = False,
 ) -> dict[str, Any]:
     s = get_settings()
-    ledger = Ledger(s.ledger_path, s.ledger_jsonl)
+    ledger = Ledger(s.ledger_path)
     defs = load_all()
     private = set() if include_private else _private_stems()
     out = Path(out)

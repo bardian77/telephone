@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from telephone.cache import StationCache
@@ -72,7 +74,7 @@ def _rec(chain="c1", gen=0, exp="exp01", cost=0.01, **kw) -> GenerationRecord:
 
 
 def test_ledger_append_query(tmp_path):
-    led = Ledger(tmp_path / "l.sqlite", tmp_path / "l.jsonl")
+    led = Ledger(tmp_path / "l.sqlite")
     for g in range(3):
         led.append(_rec(gen=g))
     led.append(_rec(chain="c2", gen=0, exp="exp02"))
@@ -85,14 +87,36 @@ def test_ledger_append_query(tmp_path):
     # replace on same key, not duplicate
     led.append(_rec(gen=2, cost=0.5))
     assert len(led.chain("c1")) == 3
-    assert (tmp_path / "l.jsonl").read_text().count("\n") == 5
+    assert led.chain("c1")[2].cost_usd == pytest.approx(0.5)
     # errored rows do not count as done
     led.append(_rec(chain="c3", gen=0, error="boom"))
     assert not led.has("c3", 0)
+
+
+def test_results_snapshot_matches_sqlite_after_replacements(tmp_path):
+    """The saved JSONL is a snapshot of SQLite, so re-appending a key never duplicates a line."""
+    led = Ledger(tmp_path / "l.sqlite")
+    for g in range(3):
+        led.append(_rec(gen=g))
+    led.append(_rec(gen=2, cost=0.5))  # replaced, not duplicated
+    led.append(_rec(chain="c0", gen=0))  # sorts before c1
+    out = tmp_path / "results" / "exp01.jsonl"
+    assert led.save_results("exp01", out) == 4
+    lines = [json.loads(ln) for ln in out.read_text().splitlines()]
+    assert [(r["chain_id"], r["generation"]) for r in lines] == [
+        ("c0", 0),
+        ("c1", 0),
+        ("c1", 1),
+        ("c1", 2),
+    ]
+    assert lines[3]["cost_usd"] == pytest.approx(0.5)
+    # saving again rewrites the file whole instead of appending
+    assert led.save_results("exp01", out) == 4
+    assert out.read_text().count("\n") == 4
     led.close()
     led2 = Ledger(tmp_path / "l2.sqlite")
-    assert led2.import_jsonl(tmp_path / "l.jsonl") == 6
-    assert len(led2.chain("c1")) == 3
+    assert led2.import_jsonl(out) == 4
+    assert [r.to_row() for r in led2.experiment("exp01")] == lines
 
 
 def test_token_bucket_waits():
