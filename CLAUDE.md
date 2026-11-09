@@ -1,3 +1,5 @@
+Every session: read `docs/BRIEF.md` first. It is the plain-language brief, plan and list of decisions.
+
 # Telephone
 
 Art-and-code project: a photograph is passed repeatedly through recompression, captioning and
