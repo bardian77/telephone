@@ -19,8 +19,10 @@ def _isolate_env(monkeypatch, tmp_path):
         "CLOUDFLARE_ACCOUNT_ID",
         "REPLICATE_API_TOKEN",
         "OPENAI_API_KEY",
+        "GEMINI_FREE_TIER",
     ]:
         monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("TELEPHONE_ENV_FILE", "")  # the project's .env is never read by a test
     monkeypatch.delenv("TELEPHONE_ROOT", raising=False)
     monkeypatch.setenv("TELEPHONE_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("TELEPHONE_SPEND_CAP_USD", "5")

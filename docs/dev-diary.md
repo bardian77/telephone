@@ -121,3 +121,17 @@ What's next. Step 3: a free Gemini key through the secure form, then a few descr
 loops with the estimated cost stated first. Step 4: save real results as preloaded examples and
 label any mock output that reaches the site as a simulation. For experiment 1, the variant that
 moves the pixel grid every pass, to test whether re-sampling is what makes decay add up.
+
+Review pass, same day. A review workflow checked the step 2 diff on four lenses. One finding was
+confirmed and fixed with a test: because settings now anchor on the project root, the test suite
+had started reading the project's `.env`, so a developer with a real key there could have made the
+tests call a paid provider. Tests now set `TELEPHONE_ENV_FILE=""` and never read a dotenv file.
+The usage limit cut the verification of the other findings short; two cheap ones were fixed by
+hand (physical frame folders were resolved against the current directory; a stale "free key"
+message). The rest are recorded here as unverified follow-ups rather than acted on blind:
+`--mock` decides the `-mock` suffix per chain, so a mixed experiment could split in two; a
+replaced photograph under the same filename is resumed from the old generation 0; any
+`ValueError` stops a whole experiment; a misspelled platform preset silently falls back to
+Instagram; the lifetime cap, the physical station error and the API's private-stem refusal are
+not exercised through the CLI or API tests; `log/build_deck.py` still assumes the repo root as
+the working directory; `save-results` includes private photos' rows in the committed file.

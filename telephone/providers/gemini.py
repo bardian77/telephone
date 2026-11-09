@@ -34,7 +34,7 @@ def _client(api_key: str | None):
     key = api_key or get_settings().gemini_api_key
     if not key:
         raise ProviderUnavailable(
-            "GEMINI_API_KEY is not set (free key at https://aistudio.google.com)"
+            "GEMINI_API_KEY is not set (get a key at https://aistudio.google.com)"
         )
     return genai.Client(api_key=key)
 

@@ -6,6 +6,7 @@ directory is, and a relative data dir is anchored on the root too.
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -95,5 +96,16 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    env_file = project_root() / ".env"
-    return Settings(_env_file=env_file if env_file.exists() else None)
+    """Settings from the environment plus the project's .env file.
+
+    TELEPHONE_ENV_FILE overrides which file is read; set it to an empty string to read none
+    (the test suite does this, so a developer's real keys never reach a test).
+    """
+    override = os.environ.get("TELEPHONE_ENV_FILE")
+    if override is not None:
+        env_file = Path(override) if override else None
+    else:
+        env_file = project_root() / ".env"
+    if env_file is not None and not env_file.exists():
+        env_file = None
+    return Settings(_env_file=env_file)

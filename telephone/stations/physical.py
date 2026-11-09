@@ -32,7 +32,9 @@ class PhysicalStation(Station):
                 "{image_stem}. Experiments fill it per image; for an ad-hoc chain give the real "
                 "folder, or pass --physical-root to run-experiment."
             )
-        folder = Path(raw)
+        from .. import paths
+
+        folder = paths.resolve(raw)  # relative folders hang off the project root, not the cwd
         return (
             sorted(p for p in folder.iterdir() if p.suffix.lower() in EXTS)
             if folder.exists()
