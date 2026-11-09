@@ -34,7 +34,7 @@ One plain sentence for each word the rest of this README leans on.
 - **Extractor**: the vision model that fills in the survival form (objects, people, text, setting, lighting, mood, colours, camera angle, photograph or not) at every generation. Experiments name it separately from the stations; `--no-extract` switches it off.
 - **Drift**: how far a generation has moved from the original, as a number. CLIP distance and colour-histogram distance for every chain, SSIM and LPIPS where pixel structure still means something.
 - **Survival**: which answers on the survival form still match generation 0, and the first generation at which each one stops matching.
-- **CLIP**: an image-recognition model that turns a picture into a list of numbers describing what it shows. The distance between two pictures is 0 when they are identical; two different photographs from this project are about 0.43 apart.
+- **CLIP**: an image-recognition model that turns a picture into a list of numbers describing what it shows. The distance between two pictures is 0 when they are identical; two different photographs from this project are about 0.50 apart.
 - **SSIM**: structural similarity, a comparison of pixel structure. 1 means identical; one Instagram-style re-save scores about 0.99.
 - **LPIPS**: a learned measure of how different two pictures look, trained on human judgements. 0 means identical.
 - **Mock provider**: a fake stand-in that costs nothing, used by the tests, CI and `--mock`. Its output is a simulation, not a result, and is filed under `<experiment>-mock`.

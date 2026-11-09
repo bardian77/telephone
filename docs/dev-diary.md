@@ -135,3 +135,12 @@ replaced photograph under the same filename is resumed from the old generation 0
 Instagram; the lifetime cap, the physical station error and the API's private-stem refusal are
 not exercised through the CLI or API tests; `log/build_deck.py` still assumes the repo root as
 the working directory; `save-results` includes private photos' rows in the committed file.
+
+Later the same day, from the first run on Bardia's Mac. Two problems the cloud run had hidden.
+A `cv2` build without `CascadeClassifier` made every chain fail at generation 1; a metric helper
+now records None and warns once instead of stopping a chain. And open_clip had been loading the
+OpenAI CLIP weights with the wrong activation (a QuickGELU mismatch it only mentioned in a
+warning). The default is now `ViT-B-32-quickgelu`, experiment 1 was re-run on both machines, and
+the two machines agree to the third decimal. The corrected numbers moved: two different photos
+are 0.50 apart on CLIP rather than 0.43, and two chains now stand out where CLIP and SSIM
+disagree (the self-portrait and the abstract crop under WhatsApp). The summary says so.

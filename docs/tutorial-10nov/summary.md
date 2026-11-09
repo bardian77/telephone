@@ -15,7 +15,7 @@ deliberately harsh setting (512 px, quality 30). No AI is involved yet; this is 
 
 After every pass I compared the result with the original using three measures. SSIM compares
 pixel structure, where 1 means identical. CLIP distance compares what an image-recognition model
-sees, where 0 means identical and, for scale, two of my different photographs are 0.43 apart.
+sees, where 0 means identical and, for scale, two of my different photographs are 0.50 apart.
 LPIPS is a learned measure of perceptual difference, again 0 for identical. That is 24 chains and
 504 generations, run on my laptop-class machine with nothing spent on APIs.
 
@@ -24,9 +24,9 @@ LPIPS is a learned measure of perceptual difference, again 0 for identical. That
 Almost all the damage happens on the first upload, and then nothing more happens. The WhatsApp
 and Instagram presets cut each file to between a half and a sixth of its size (the Barbican lake
 goes from 487 kB to 156 kB on Instagram) while SSIM stays above 0.97 and CLIP distance moves by
-0.01 to 0.03, which is 2 to 6 percent of the distance between two different photographs. The
-harsh preset takes SSIM down to between 0.83 and 0.93 and CLIP distance up to between 0.06 and
-0.12. From generation 1 to generation 20 the numbers do not move. Thirteen of the 24 chains end up
+0.01 to 0.02 on most chains, which is 2 to 4 percent of the distance between two different
+photographs. The harsh preset takes SSIM down to between 0.83 and 0.93 and CLIP distance up to
+between 0.06 and 0.11. From generation 1 to generation 20 the numbers do not move. Thirteen of the 24 chains end up
 producing byte-for-byte identical files after 3 to 13 passes; the other eleven keep shuffling a
 few dozen bytes without changing the picture.
 
@@ -42,6 +42,12 @@ Two smaller surprises. The vertical Bologna photo lost the most structure under 
 arcades and the small figures are fine detail that JPEG throws away first. And the 460 px abstract
 crop was never resized by any preset, since it is already smaller than all of them, yet it still
 lost 3 to 9 percent of its SSIM from re-encoding alone.
+
+And one that the metrics disagree about. On the self-portrait, the WhatsApp preset gives a CLIP
+distance of 0.08 while Instagram gives 0.02, although SSIM is 0.996 for both and the two files
+look the same to me. The abstract crop on WhatsApp does something similar (0.06). CLIP is reacting
+to something that pixel structure does not measure, which is exactly why the plan includes a
+hand-labelled check of the metrics against my own judgement.
 
 One thing about the starting point: generation 0 had already been through one upload before I
 began. The app I used to get the photos into the project resized them to 2000 px and removed their
