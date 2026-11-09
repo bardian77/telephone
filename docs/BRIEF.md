@@ -99,6 +99,11 @@ website does far too much. We are simplifying: experiments and the log come firs
 comes last and will show one photo, its generations, a plain list of what survived and one simple
 drift line.
 
+Steps 0, 1 and 2 were done on 9 November (details in `docs/dev-diary.md`). Experiment 1 ran on all
+six photographs: under a fixed platform preset all of the change happens on the first upload and
+the loop then sits still, which is itself a finding. The six audited bugs are fixed with tests,
+`telephone doctor` reports what can run, and every command works from any folder.
+
 There are no API keys yet. That decides the order of work:
 
 - Runs without keys: the compression-only experiment (experiment 1), and the local measurements

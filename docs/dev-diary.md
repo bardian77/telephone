@@ -82,3 +82,42 @@ are weak in grayscale, so every preset also has its own marker and a direct labe
 Change of direction for later. Re-uploading at a fixed size and quality does not decay a
 photograph; re-sampling does. Experiment 1 needs a variant that moves the pixel grid every pass,
 as Ashton's screenshots did, to see cumulative loss without any AI. Not run yet.
+
+## 2026-11-09: step 2, the audited bugs and a command line a person can use
+
+What we tried. The six bugs from the audit of the core loop, each with a test written to fail
+first, then the usability list: one `--mock` flag, a `telephone doctor` command, one-line errors
+instead of tracebacks, commands that work from any folder, one place for model defaults, a
+glossary in the README, and a private folder for photographs that must never be published.
+
+What happened. The test suite went from 25 tests at the start of the day to 54, all passing.
+A chain is now resumed only from ledger rows whose station configuration matches a fingerprint,
+so a run on mock providers can never be continued as a real one. The spend cap counts every paid
+call ever made, from an append-only log in the ledger, and both run commands refuse to start
+when the estimate does not fit in what is left. Gemini is costed at list price unless
+`GEMINI_FREE_TIER=1` says otherwise. The ledger is local; `save-results` writes the rows of one
+experiment as a sorted file that is committed. Experiment 6's folder placeholder is filled per
+image. `telephone doctor` says what is installed, which keys are set, how much has been spent,
+and for every experiment what it still needs or how it can run now.
+
+What failed or changed on the way.
+
+- The plan said to seed the spend cap from the generation rows. The verification pass found that
+  a re-run replaces a row and loses its earlier cost, while a cache hit copies an old cost into a
+  new row, so that sum is wrong in both directions. The cap now counts a separate append-only
+  spend log that every paid call writes.
+- The plan said to namespace mock runs with a double underscore. The chain-id parser splits on
+  double underscores, so the suffix is a hyphen: `exp02_caption_length-mock`.
+- The previous code assumed Gemini was free. With list price as the default, the estimates for
+  experiments 2 to 5 went up and one test's bound had to move.
+- The PyTorch wheel index redirects to a second host, so the CPU-only wheel could not be
+  installed in the cloud environment; the ordinary PyPI build works on the CPU and is used
+  instead. Hugging Face redirects weight downloads to `us.aws.cdn.hf.co`, found by following the
+  redirect by hand.
+- The session's worker restarted five times during the day. Committing and pushing after every
+  batch kept the work safe.
+
+What's next. Step 3: a free Gemini key through the secure form, then a few describe-and-redraw
+loops with the estimated cost stated first. Step 4: save real results as preloaded examples and
+label any mock output that reaches the site as a simulation. For experiment 1, the variant that
+moves the pixel grid every pass, to test whether re-sampling is what makes decay add up.
