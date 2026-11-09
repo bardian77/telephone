@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import shutil
 
 import numpy as np
@@ -63,18 +64,30 @@ def ocr_stats(image: bytes) -> tuple[int, int] | None:
 
 
 def face_count(image: bytes) -> int | None:
-    """Frontal faces found by the OpenCV Haar cascade, or None without OpenCV."""
-    global _cascade
+    """Frontal faces found by the OpenCV Haar cascade, or None when OpenCV is missing or broken.
+
+    A readability helper must never stop a chain: any failure (no cv2, a partial cv2 build
+    without CascadeClassifier, a missing cascade file) is recorded as None, once, with a warning.
+    """
+    global _cascade, _face_failed
+    if _face_failed:
+        return None
     try:
         import cv2
-    except ImportError:
+
+        if _cascade is None:
+            path = _cascade_path()
+            if path is None:
+                raise RuntimeError("Haar cascade file not found")
+            _cascade = cv2.CascadeClassifier(path)
+        img = from_bytes(image)
+        arr = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2GRAY)
+        faces = _cascade.detectMultiScale(arr, scaleFactor=1.1, minNeighbors=5, minSize=(24, 24))
+        return int(len(faces))
+    except Exception as e:  # noqa: BLE001
+        _face_failed = True
+        logging.getLogger("telephone").warning("face count unavailable, recording None: %s", e)
         return None
-    if _cascade is None:
-        path = _cascade_path()
-        if path is None:
-            return None
-        _cascade = cv2.CascadeClassifier(path)
-    img = from_bytes(image)
-    arr = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2GRAY)
-    faces = _cascade.detectMultiScale(arr, scaleFactor=1.1, minNeighbors=5, minSize=(24, 24))
-    return int(len(faces))
+
+
+_face_failed = False

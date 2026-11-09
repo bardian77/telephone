@@ -47,7 +47,9 @@ class ClipEmbedder:
     _lock = threading.Lock()
 
     def __init__(self, model_name: str | None = None, pretrained: str | None = None):
-        self.model_name = model_name or os.environ.get("TELEPHONE_CLIP_MODEL", "ViT-B-32")
+        # the OpenAI weights were trained with QuickGELU; the plain ViT-B-32 config silently
+        # mismatches them (open_clip warns), so the quickgelu variant is the correct default
+        self.model_name = model_name or os.environ.get("TELEPHONE_CLIP_MODEL", "ViT-B-32-quickgelu")
         self.pretrained = pretrained or os.environ.get("TELEPHONE_CLIP_PRETRAINED", "openai")
         try:
             import open_clip

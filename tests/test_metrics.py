@@ -93,3 +93,17 @@ def test_first_failure():
     ]
     ff = first_failure(chain)
     assert ff["lighting"] == 1 and ff["mood"] == 3 and ff["objects"] is None
+
+
+def test_face_count_survives_a_broken_cv2(monkeypatch, test_image):
+    """A cv2 build without CascadeClassifier must give None, not take the chain down."""
+    import sys
+    import types
+
+    from telephone.metrics import readability
+
+    monkeypatch.setitem(sys.modules, "cv2", types.SimpleNamespace(data=types.SimpleNamespace()))
+    monkeypatch.setattr(readability, "_cascade", None)
+    monkeypatch.setattr(readability, "_face_failed", False)
+    assert readability.face_count(to_png_bytes(load_image(test_image))) is None
+    assert readability._face_failed is True
