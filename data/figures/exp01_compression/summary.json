@@ -1,0 +1,3066 @@
+{
+  "variants": {
+    "harsh": {
+      "chains": 6,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0887,
+            "std": 0.0185
+          },
+          {
+            "generation": 2,
+            "mean": 0.0885,
+            "std": 0.0185
+          },
+          {
+            "generation": 3,
+            "mean": 0.0884,
+            "std": 0.0184
+          },
+          {
+            "generation": 4,
+            "mean": 0.0884,
+            "std": 0.0184
+          },
+          {
+            "generation": 5,
+            "mean": 0.0884,
+            "std": 0.0184
+          },
+          {
+            "generation": 6,
+            "mean": 0.0884,
+            "std": 0.0185
+          },
+          {
+            "generation": 7,
+            "mean": 0.0885,
+            "std": 0.0186
+          },
+          {
+            "generation": 8,
+            "mean": 0.0885,
+            "std": 0.0187
+          },
+          {
+            "generation": 9,
+            "mean": 0.0886,
+            "std": 0.0188
+          },
+          {
+            "generation": 10,
+            "mean": 0.0887,
+            "std": 0.0189
+          },
+          {
+            "generation": 11,
+            "mean": 0.0887,
+            "std": 0.019
+          },
+          {
+            "generation": 12,
+            "mean": 0.0888,
+            "std": 0.019
+          },
+          {
+            "generation": 13,
+            "mean": 0.0888,
+            "std": 0.0191
+          },
+          {
+            "generation": 14,
+            "mean": 0.0888,
+            "std": 0.0191
+          },
+          {
+            "generation": 15,
+            "mean": 0.0889,
+            "std": 0.0192
+          },
+          {
+            "generation": 16,
+            "mean": 0.0889,
+            "std": 0.0192
+          },
+          {
+            "generation": 17,
+            "mean": 0.0889,
+            "std": 0.0192
+          },
+          {
+            "generation": 18,
+            "mean": 0.0889,
+            "std": 0.0192
+          },
+          {
+            "generation": 19,
+            "mean": 0.0889,
+            "std": 0.0192
+          },
+          {
+            "generation": 20,
+            "mean": 0.0889,
+            "std": 0.0192
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 2,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 3,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 4,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 5,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 6,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 7,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 8,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 9,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 10,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 11,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 12,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 13,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 14,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 15,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 16,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 17,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 18,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 19,
+            "mean": 0.2635,
+            "std": 0.0675
+          },
+          {
+            "generation": 20,
+            "mean": 0.2635,
+            "std": 0.0675
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.8948,
+            "std": 0.0331
+          },
+          {
+            "generation": 2,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 3,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 4,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 5,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 6,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 7,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 8,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 9,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 10,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 11,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 12,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 13,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 14,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 15,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 16,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 17,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 18,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 19,
+            "mean": 0.8947,
+            "std": 0.0331
+          },
+          {
+            "generation": 20,
+            "mean": 0.8947,
+            "std": 0.0331
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "instagram": {
+      "chains": 6,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0142,
+            "std": 0.0032
+          },
+          {
+            "generation": 2,
+            "mean": 0.0142,
+            "std": 0.0032
+          },
+          {
+            "generation": 3,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 4,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 5,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 6,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 7,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 8,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 9,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 10,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 11,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 12,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 13,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 14,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 15,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 16,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 17,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 18,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 19,
+            "mean": 0.0143,
+            "std": 0.0032
+          },
+          {
+            "generation": 20,
+            "mean": 0.0143,
+            "std": 0.0032
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0751,
+            "std": 0.0126
+          },
+          {
+            "generation": 2,
+            "mean": 0.0755,
+            "std": 0.0129
+          },
+          {
+            "generation": 3,
+            "mean": 0.0755,
+            "std": 0.0129
+          },
+          {
+            "generation": 4,
+            "mean": 0.0755,
+            "std": 0.0128
+          },
+          {
+            "generation": 5,
+            "mean": 0.0755,
+            "std": 0.0129
+          },
+          {
+            "generation": 6,
+            "mean": 0.0755,
+            "std": 0.0129
+          },
+          {
+            "generation": 7,
+            "mean": 0.0755,
+            "std": 0.0129
+          },
+          {
+            "generation": 8,
+            "mean": 0.0756,
+            "std": 0.0129
+          },
+          {
+            "generation": 9,
+            "mean": 0.0756,
+            "std": 0.0129
+          },
+          {
+            "generation": 10,
+            "mean": 0.0756,
+            "std": 0.0129
+          },
+          {
+            "generation": 11,
+            "mean": 0.0756,
+            "std": 0.0129
+          },
+          {
+            "generation": 12,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 13,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 14,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 15,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 16,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 17,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 18,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 19,
+            "mean": 0.0756,
+            "std": 0.0128
+          },
+          {
+            "generation": 20,
+            "mean": 0.0756,
+            "std": 0.0128
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 2,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 3,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 4,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 5,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 6,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 7,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 8,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 9,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 10,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 11,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 12,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 13,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 14,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 15,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 16,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 17,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 18,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 19,
+            "mean": 0.9876,
+            "std": 0.01
+          },
+          {
+            "generation": 20,
+            "mean": 0.9876,
+            "std": 0.01
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "screenshot_whatsapp": {
+      "chains": 6,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0384,
+            "std": 0.0216
+          },
+          {
+            "generation": 2,
+            "mean": 0.0422,
+            "std": 0.0242
+          },
+          {
+            "generation": 3,
+            "mean": 0.0433,
+            "std": 0.0247
+          },
+          {
+            "generation": 4,
+            "mean": 0.0432,
+            "std": 0.0249
+          },
+          {
+            "generation": 5,
+            "mean": 0.043,
+            "std": 0.0248
+          },
+          {
+            "generation": 6,
+            "mean": 0.0434,
+            "std": 0.0248
+          },
+          {
+            "generation": 7,
+            "mean": 0.0434,
+            "std": 0.0248
+          },
+          {
+            "generation": 8,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 9,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 10,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 11,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 12,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 13,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 14,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 15,
+            "mean": 0.0434,
+            "std": 0.0248
+          },
+          {
+            "generation": 16,
+            "mean": 0.0433,
+            "std": 0.0248
+          },
+          {
+            "generation": 17,
+            "mean": 0.0434,
+            "std": 0.0248
+          },
+          {
+            "generation": 18,
+            "mean": 0.0434,
+            "std": 0.0248
+          },
+          {
+            "generation": 19,
+            "mean": 0.0434,
+            "std": 0.0248
+          },
+          {
+            "generation": 20,
+            "mean": 0.0434,
+            "std": 0.0248
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.1707,
+            "std": 0.0443
+          },
+          {
+            "generation": 2,
+            "mean": 0.1714,
+            "std": 0.044
+          },
+          {
+            "generation": 3,
+            "mean": 0.1717,
+            "std": 0.044
+          },
+          {
+            "generation": 4,
+            "mean": 0.1718,
+            "std": 0.0439
+          },
+          {
+            "generation": 5,
+            "mean": 0.1718,
+            "std": 0.0439
+          },
+          {
+            "generation": 6,
+            "mean": 0.1718,
+            "std": 0.0438
+          },
+          {
+            "generation": 7,
+            "mean": 0.1718,
+            "std": 0.0438
+          },
+          {
+            "generation": 8,
+            "mean": 0.1718,
+            "std": 0.0438
+          },
+          {
+            "generation": 9,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 10,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 11,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 12,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 13,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 14,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 15,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 16,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 17,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 18,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 19,
+            "mean": 0.1719,
+            "std": 0.0438
+          },
+          {
+            "generation": 20,
+            "mean": 0.1719,
+            "std": 0.0438
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9756,
+            "std": 0.0225
+          },
+          {
+            "generation": 2,
+            "mean": 0.9754,
+            "std": 0.0227
+          },
+          {
+            "generation": 3,
+            "mean": 0.9754,
+            "std": 0.0227
+          },
+          {
+            "generation": 4,
+            "mean": 0.9753,
+            "std": 0.0227
+          },
+          {
+            "generation": 5,
+            "mean": 0.9753,
+            "std": 0.0227
+          },
+          {
+            "generation": 6,
+            "mean": 0.9753,
+            "std": 0.0227
+          },
+          {
+            "generation": 7,
+            "mean": 0.9753,
+            "std": 0.0227
+          },
+          {
+            "generation": 8,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 9,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 10,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 11,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 12,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 13,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 14,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 15,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 16,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 17,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 18,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 19,
+            "mean": 0.9753,
+            "std": 0.0228
+          },
+          {
+            "generation": 20,
+            "mean": 0.9753,
+            "std": 0.0228
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "whatsapp": {
+      "chains": 6,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 2,
+            "mean": 0.0211,
+            "std": 0.0107
+          },
+          {
+            "generation": 3,
+            "mean": 0.0211,
+            "std": 0.0107
+          },
+          {
+            "generation": 4,
+            "mean": 0.0211,
+            "std": 0.0108
+          },
+          {
+            "generation": 5,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 6,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 7,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 8,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 9,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 10,
+            "mean": 0.0211,
+            "std": 0.0108
+          },
+          {
+            "generation": 11,
+            "mean": 0.0211,
+            "std": 0.0108
+          },
+          {
+            "generation": 12,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 13,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 14,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 15,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 16,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 17,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 18,
+            "mean": 0.0212,
+            "std": 0.0108
+          },
+          {
+            "generation": 19,
+            "mean": 0.0212,
+            "std": 0.0107
+          },
+          {
+            "generation": 20,
+            "mean": 0.0212,
+            "std": 0.0107
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.1541,
+            "std": 0.0405
+          },
+          {
+            "generation": 2,
+            "mean": 0.1541,
+            "std": 0.0405
+          },
+          {
+            "generation": 3,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 4,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 5,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 6,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 7,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 8,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 9,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 10,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 11,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 12,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 13,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 14,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 15,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 16,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 17,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 18,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 19,
+            "mean": 0.1542,
+            "std": 0.0404
+          },
+          {
+            "generation": 20,
+            "mean": 0.1542,
+            "std": 0.0404
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 2,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 3,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 4,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 5,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 6,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 7,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 8,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 9,
+            "mean": 0.9875,
+            "std": 0.0146
+          },
+          {
+            "generation": 10,
+            "mean": 0.9875,
+            "std": 0.0147
+          },
+          {
+            "generation": 11,
+            "mean": 0.9875,
+            "std": 0.0147
+          },
+          {
+            "generation": 12,
+            "mean": 0.9875,
+            "std": 0.0147
+          },
+          {
+            "generation": 13,
+            "mean": 0.9875,
+            "std": 0.0147
+          },
+          {
+            "generation": 14,
+            "mean": 0.9874,
+            "std": 0.0147
+          },
+          {
+            "generation": 15,
+            "mean": 0.9874,
+            "std": 0.0147
+          },
+          {
+            "generation": 16,
+            "mean": 0.9874,
+            "std": 0.0147
+          },
+          {
+            "generation": 17,
+            "mean": 0.9874,
+            "std": 0.0147
+          },
+          {
+            "generation": 18,
+            "mean": 0.9874,
+            "std": 0.0147
+          },
+          {
+            "generation": 19,
+            "mean": 0.9874,
+            "std": 0.0147
+          },
+          {
+            "generation": 20,
+            "mean": 0.9874,
+            "std": 0.0147
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    }
+  },
+  "types": {
+    "abstract": {
+      "chains": 4,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0568,
+            "std": 0.036
+          },
+          {
+            "generation": 2,
+            "mean": 0.0566,
+            "std": 0.036
+          },
+          {
+            "generation": 3,
+            "mean": 0.0566,
+            "std": 0.0359
+          },
+          {
+            "generation": 4,
+            "mean": 0.0568,
+            "std": 0.036
+          },
+          {
+            "generation": 5,
+            "mean": 0.0568,
+            "std": 0.036
+          },
+          {
+            "generation": 6,
+            "mean": 0.0569,
+            "std": 0.0361
+          },
+          {
+            "generation": 7,
+            "mean": 0.0569,
+            "std": 0.0362
+          },
+          {
+            "generation": 8,
+            "mean": 0.057,
+            "std": 0.0363
+          },
+          {
+            "generation": 9,
+            "mean": 0.057,
+            "std": 0.0366
+          },
+          {
+            "generation": 10,
+            "mean": 0.0571,
+            "std": 0.0367
+          },
+          {
+            "generation": 11,
+            "mean": 0.0572,
+            "std": 0.0369
+          },
+          {
+            "generation": 12,
+            "mean": 0.0573,
+            "std": 0.037
+          },
+          {
+            "generation": 13,
+            "mean": 0.0574,
+            "std": 0.0371
+          },
+          {
+            "generation": 14,
+            "mean": 0.0574,
+            "std": 0.0371
+          },
+          {
+            "generation": 15,
+            "mean": 0.0575,
+            "std": 0.0372
+          },
+          {
+            "generation": 16,
+            "mean": 0.0575,
+            "std": 0.0373
+          },
+          {
+            "generation": 17,
+            "mean": 0.0575,
+            "std": 0.0372
+          },
+          {
+            "generation": 18,
+            "mean": 0.0575,
+            "std": 0.0373
+          },
+          {
+            "generation": 19,
+            "mean": 0.0575,
+            "std": 0.0373
+          },
+          {
+            "generation": 20,
+            "mean": 0.0575,
+            "std": 0.0373
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.1712,
+            "std": 0.0737
+          },
+          {
+            "generation": 2,
+            "mean": 0.1714,
+            "std": 0.0739
+          },
+          {
+            "generation": 3,
+            "mean": 0.1715,
+            "std": 0.074
+          },
+          {
+            "generation": 4,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 5,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 6,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 7,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 8,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 9,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 10,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 11,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 12,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 13,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 14,
+            "mean": 0.1715,
+            "std": 0.0739
+          },
+          {
+            "generation": 15,
+            "mean": 0.1716,
+            "std": 0.0739
+          },
+          {
+            "generation": 16,
+            "mean": 0.1716,
+            "std": 0.0739
+          },
+          {
+            "generation": 17,
+            "mean": 0.1716,
+            "std": 0.0739
+          },
+          {
+            "generation": 18,
+            "mean": 0.1716,
+            "std": 0.0739
+          },
+          {
+            "generation": 19,
+            "mean": 0.1716,
+            "std": 0.0739
+          },
+          {
+            "generation": 20,
+            "mean": 0.1716,
+            "std": 0.0739
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9405,
+            "std": 0.0246
+          },
+          {
+            "generation": 2,
+            "mean": 0.9404,
+            "std": 0.0247
+          },
+          {
+            "generation": 3,
+            "mean": 0.9403,
+            "std": 0.0247
+          },
+          {
+            "generation": 4,
+            "mean": 0.9403,
+            "std": 0.0247
+          },
+          {
+            "generation": 5,
+            "mean": 0.9403,
+            "std": 0.0247
+          },
+          {
+            "generation": 6,
+            "mean": 0.9403,
+            "std": 0.0247
+          },
+          {
+            "generation": 7,
+            "mean": 0.9403,
+            "std": 0.0247
+          },
+          {
+            "generation": 8,
+            "mean": 0.9403,
+            "std": 0.0247
+          },
+          {
+            "generation": 9,
+            "mean": 0.9402,
+            "std": 0.0247
+          },
+          {
+            "generation": 10,
+            "mean": 0.9402,
+            "std": 0.0247
+          },
+          {
+            "generation": 11,
+            "mean": 0.9402,
+            "std": 0.0247
+          },
+          {
+            "generation": 12,
+            "mean": 0.9402,
+            "std": 0.0247
+          },
+          {
+            "generation": 13,
+            "mean": 0.9402,
+            "std": 0.0247
+          },
+          {
+            "generation": 14,
+            "mean": 0.9402,
+            "std": 0.0247
+          },
+          {
+            "generation": 15,
+            "mean": 0.9401,
+            "std": 0.0247
+          },
+          {
+            "generation": 16,
+            "mean": 0.9401,
+            "std": 0.0247
+          },
+          {
+            "generation": 17,
+            "mean": 0.9401,
+            "std": 0.0247
+          },
+          {
+            "generation": 18,
+            "mean": 0.9401,
+            "std": 0.0247
+          },
+          {
+            "generation": 19,
+            "mean": 0.9401,
+            "std": 0.0247
+          },
+          {
+            "generation": 20,
+            "mean": 0.9401,
+            "std": 0.0247
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "landscape": {
+      "chains": 4,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0363,
+            "std": 0.0386
+          },
+          {
+            "generation": 2,
+            "mean": 0.0385,
+            "std": 0.0379
+          },
+          {
+            "generation": 3,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 4,
+            "mean": 0.0393,
+            "std": 0.0377
+          },
+          {
+            "generation": 5,
+            "mean": 0.0391,
+            "std": 0.0378
+          },
+          {
+            "generation": 6,
+            "mean": 0.0395,
+            "std": 0.0377
+          },
+          {
+            "generation": 7,
+            "mean": 0.0395,
+            "std": 0.0377
+          },
+          {
+            "generation": 8,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 9,
+            "mean": 0.0395,
+            "std": 0.0377
+          },
+          {
+            "generation": 10,
+            "mean": 0.0395,
+            "std": 0.0377
+          },
+          {
+            "generation": 11,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 12,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 13,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 14,
+            "mean": 0.0395,
+            "std": 0.0377
+          },
+          {
+            "generation": 15,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 16,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 17,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 18,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 19,
+            "mean": 0.0396,
+            "std": 0.0377
+          },
+          {
+            "generation": 20,
+            "mean": 0.0396,
+            "std": 0.0377
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.1269,
+            "std": 0.0544
+          },
+          {
+            "generation": 2,
+            "mean": 0.1273,
+            "std": 0.0541
+          },
+          {
+            "generation": 3,
+            "mean": 0.1274,
+            "std": 0.0541
+          },
+          {
+            "generation": 4,
+            "mean": 0.1277,
+            "std": 0.054
+          },
+          {
+            "generation": 5,
+            "mean": 0.1278,
+            "std": 0.054
+          },
+          {
+            "generation": 6,
+            "mean": 0.1278,
+            "std": 0.054
+          },
+          {
+            "generation": 7,
+            "mean": 0.1278,
+            "std": 0.054
+          },
+          {
+            "generation": 8,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 9,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 10,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 11,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 12,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 13,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 14,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 15,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 16,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 17,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 18,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 19,
+            "mean": 0.1279,
+            "std": 0.0539
+          },
+          {
+            "generation": 20,
+            "mean": 0.1279,
+            "std": 0.0539
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9644,
+            "std": 0.0506
+          },
+          {
+            "generation": 2,
+            "mean": 0.9644,
+            "std": 0.0506
+          },
+          {
+            "generation": 3,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 4,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 5,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 6,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 7,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 8,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 9,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 10,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 11,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 12,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 13,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 14,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 15,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 16,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 17,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 18,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 19,
+            "mean": 0.9643,
+            "std": 0.0506
+          },
+          {
+            "generation": 20,
+            "mean": 0.9643,
+            "std": 0.0506
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "portrait": {
+      "chains": 4,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0542,
+            "std": 0.0331
+          },
+          {
+            "generation": 2,
+            "mean": 0.057,
+            "std": 0.0353
+          },
+          {
+            "generation": 3,
+            "mean": 0.0575,
+            "std": 0.0358
+          },
+          {
+            "generation": 4,
+            "mean": 0.0575,
+            "std": 0.0357
+          },
+          {
+            "generation": 5,
+            "mean": 0.0574,
+            "std": 0.0356
+          },
+          {
+            "generation": 6,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 7,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 8,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 9,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 10,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 11,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 12,
+            "mean": 0.0575,
+            "std": 0.0357
+          },
+          {
+            "generation": 13,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 14,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 15,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 16,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 17,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 18,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 19,
+            "mean": 0.0576,
+            "std": 0.0357
+          },
+          {
+            "generation": 20,
+            "mean": 0.0576,
+            "std": 0.0357
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.1327,
+            "std": 0.0382
+          },
+          {
+            "generation": 2,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 3,
+            "mean": 0.1329,
+            "std": 0.0381
+          },
+          {
+            "generation": 4,
+            "mean": 0.1329,
+            "std": 0.0381
+          },
+          {
+            "generation": 5,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 6,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 7,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 8,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 9,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 10,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 11,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 12,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 13,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 14,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 15,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 16,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 17,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 18,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 19,
+            "mean": 0.1329,
+            "std": 0.0382
+          },
+          {
+            "generation": 20,
+            "mean": 0.1329,
+            "std": 0.0382
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.975,
+            "std": 0.0333
+          },
+          {
+            "generation": 2,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 3,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 4,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 5,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 6,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 7,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 8,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 9,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 10,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 11,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 12,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 13,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 14,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 15,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 16,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 17,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 18,
+            "mean": 0.9749,
+            "std": 0.0334
+          },
+          {
+            "generation": 19,
+            "mean": 0.9749,
+            "std": 0.0333
+          },
+          {
+            "generation": 20,
+            "mean": 0.9749,
+            "std": 0.0333
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "street": {
+      "chains": 8,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0279,
+            "std": 0.0233
+          },
+          {
+            "generation": 2,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 3,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 4,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 5,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 6,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 7,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 8,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 9,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 10,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 11,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 12,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 13,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 14,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 15,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 16,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 17,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 18,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 19,
+            "mean": 0.0282,
+            "std": 0.0233
+          },
+          {
+            "generation": 20,
+            "mean": 0.0282,
+            "std": 0.0233
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.1642,
+            "std": 0.0758
+          },
+          {
+            "generation": 2,
+            "mean": 0.1646,
+            "std": 0.0756
+          },
+          {
+            "generation": 3,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 4,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 5,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 6,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 7,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 8,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 9,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 10,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 11,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 12,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 13,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 14,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 15,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 16,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 17,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 18,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 19,
+            "mean": 0.1647,
+            "std": 0.0756
+          },
+          {
+            "generation": 20,
+            "mean": 0.1647,
+            "std": 0.0756
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9563,
+            "std": 0.0545
+          },
+          {
+            "generation": 2,
+            "mean": 0.9563,
+            "std": 0.0546
+          },
+          {
+            "generation": 3,
+            "mean": 0.9563,
+            "std": 0.0546
+          },
+          {
+            "generation": 4,
+            "mean": 0.9563,
+            "std": 0.0546
+          },
+          {
+            "generation": 5,
+            "mean": 0.9563,
+            "std": 0.0546
+          },
+          {
+            "generation": 6,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 7,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 8,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 9,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 10,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 11,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 12,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 13,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 14,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 15,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 16,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 17,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 18,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 19,
+            "mean": 0.9562,
+            "std": 0.0546
+          },
+          {
+            "generation": 20,
+            "mean": 0.9562,
+            "std": 0.0546
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    },
+    "text": {
+      "chains": 4,
+      "curves": {
+        "clip_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.0405,
+            "std": 0.0271
+          },
+          {
+            "generation": 2,
+            "mean": 0.0406,
+            "std": 0.0271
+          },
+          {
+            "generation": 3,
+            "mean": 0.0406,
+            "std": 0.0271
+          },
+          {
+            "generation": 4,
+            "mean": 0.0406,
+            "std": 0.0271
+          },
+          {
+            "generation": 5,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 6,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 7,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 8,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 9,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 10,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 11,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 12,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 13,
+            "mean": 0.0405,
+            "std": 0.0271
+          },
+          {
+            "generation": 14,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 15,
+            "mean": 0.0405,
+            "std": 0.0271
+          },
+          {
+            "generation": 16,
+            "mean": 0.0405,
+            "std": 0.0271
+          },
+          {
+            "generation": 17,
+            "mean": 0.0405,
+            "std": 0.0272
+          },
+          {
+            "generation": 18,
+            "mean": 0.0405,
+            "std": 0.0271
+          },
+          {
+            "generation": 19,
+            "mean": 0.0405,
+            "std": 0.0271
+          },
+          {
+            "generation": 20,
+            "mean": 0.0405,
+            "std": 0.0271
+          }
+        ],
+        "hist_dist_to_g0": [
+          {
+            "generation": 0,
+            "mean": 0.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.2359,
+            "std": 0.1023
+          },
+          {
+            "generation": 2,
+            "mean": 0.2359,
+            "std": 0.1022
+          },
+          {
+            "generation": 3,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 4,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 5,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 6,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 7,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 8,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 9,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 10,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 11,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 12,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 13,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 14,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 15,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 16,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 17,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 18,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 19,
+            "mean": 0.236,
+            "std": 0.1022
+          },
+          {
+            "generation": 20,
+            "mean": 0.236,
+            "std": 0.1022
+          }
+        ],
+        "ssim_to_g0": [
+          {
+            "generation": 0,
+            "mean": 1.0,
+            "std": 0.0
+          },
+          {
+            "generation": 1,
+            "mean": 0.9758,
+            "std": 0.0278
+          },
+          {
+            "generation": 2,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 3,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 4,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 5,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 6,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 7,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 8,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 9,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 10,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 11,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 12,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 13,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 14,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 15,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 16,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 17,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 18,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 19,
+            "mean": 0.9757,
+            "std": 0.0278
+          },
+          {
+            "generation": 20,
+            "mean": 0.9757,
+            "std": 0.0278
+          }
+        ]
+      },
+      "first_failure_median": {
+        "objects": null,
+        "people_count": null,
+        "visible_text": null,
+        "setting": null,
+        "lighting": null,
+        "mood": null,
+        "dominant_colors": null,
+        "camera_angle": null,
+        "is_photograph": null
+      },
+      "errors": [],
+      "cost_usd": 0.0,
+      "list_price_usd": 0.0
+    }
+  }
+}

@@ -23,6 +23,8 @@ data/ledger.jsonl
 # Keep private photos in data/originals/private/ (never committed).
 data/originals/private/
 data/cache/
+# per-chain contact sheets are regenerated from data/runs by `telephone render`
+data/figures/*/contact_sheets/
 # web
 web/node_modules/
 web/dist/
