@@ -11,4 +11,5 @@ image being processed by third-party AI services and possibly published on the
 project website. Images that must stay private can be listed in `private.txt`
 (one filename per line); they are processed but excluded from the web export.
 
-This folder is gitignored except for this file.
+Photos in this folder are committed to the public repo, so cloud sessions keep them.
+Photos that must stay private go in `data/originals/private/`, which is never committed.
