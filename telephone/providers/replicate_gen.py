@@ -8,13 +8,14 @@ from ..cost import get_tracker, image_list_price
 from ..models import Usage
 from ..ratelimit import wait_for
 from .base import ProviderRefusal, ProviderUnavailable, Timer
+from .defaults import IMAGE_DEFAULT_MODELS
 
 
 class ReplicateFluxGen:
     name = "replicate"
     supports_seed = True
 
-    def __init__(self, model: str = "black-forest-labs/flux-schnell", api_token: str | None = None):
+    def __init__(self, model: str | None = None, api_token: str | None = None):
         try:
             import replicate
         except ImportError as e:  # pragma: no cover
@@ -25,7 +26,7 @@ class ReplicateFluxGen:
         if not token:
             raise ProviderUnavailable("REPLICATE_API_TOKEN is not set")
         self.client = replicate.Client(api_token=token)
-        self.model = model
+        self.model = model or IMAGE_DEFAULT_MODELS["replicate"]
 
     def generate(
         self, prompt: str, seed: int | None = None, width: int = 1024, height: int = 1024

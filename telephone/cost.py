@@ -44,10 +44,12 @@ IMAGE_PRICES_PER_IMAGE: dict[str, float] = {
 
 
 def text_list_price(model: str, input_tokens: int, output_tokens: int) -> float:
+    from .providers.defaults import VISION_DEFAULT_MODELS
+
     base = model.split("@")[0]
     if base not in TEXT_PRICES_PER_MTOK:
-        # unknown model: be conservative, assume Sonnet-class pricing
-        inp, out = TEXT_PRICES_PER_MTOK["claude-sonnet-5-5"]
+        # unknown model: be conservative, assume the default captioner's (Sonnet-class) pricing
+        inp, out = TEXT_PRICES_PER_MTOK[VISION_DEFAULT_MODELS["anthropic"]]
     else:
         inp, out = TEXT_PRICES_PER_MTOK[base]
     return (input_tokens * inp + output_tokens * out) / 1_000_000

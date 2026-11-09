@@ -34,13 +34,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from PIL import Image  # noqa: E402
 
+from telephone import paths  # noqa: E402
 from telephone.config import get_settings  # noqa: E402
 from telephone.ledger import Ledger  # noqa: E402
 from telephone.models import GenerationRecord  # noqa: E402
 from telephone.render import image_of, variant_of  # noqa: E402
 
 EXPERIMENT = "exp01_compression"
-OUT = Path("docs/tutorial-10nov/figures")
+OUT = paths.project_root() / "docs" / "tutorial-10nov" / "figures"
 SHOW_GENERATIONS = [0, 1, 2, 5, 10, 20]
 
 # one row per preset, in order of increasing severity on the first pass
@@ -167,10 +168,10 @@ def contact_sheet(stem: str, chains: dict[str, list[GenerationRecord]], path: Pa
             ax = fig.add_subplot(grid[i, j])
             ax.set_axis_off()
             rec = recs.get(g)
-            if rec is None or not Path(rec.output_path).exists():
+            if rec is None or not paths.resolve(rec.output_path).exists():
                 ax.text(0.5, 0.5, "missing", ha="center", va="center", color=MUTED)
                 continue
-            img = Image.open(rec.output_path).convert("RGB")
+            img = Image.open(paths.resolve(rec.output_path)).convert("RGB")
             img.thumbnail((360, 360))
             ax.imshow(img, interpolation="lanczos")
             m = rec.metrics

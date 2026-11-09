@@ -21,12 +21,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from telephone.config import get_settings
-from telephone.export import export_chain
+from telephone.export import _private_stems, export_chain
 from telephone.ledger import Ledger
 from telephone.models import ChainConfig, StationConfig
+from telephone.paths import project_root
 
 settings = get_settings()
-EXPORT_DIR = Path("web/public/data")
+EXPORT_DIR = project_root() / "web" / "public" / "data"
 app = FastAPI(title="Telephone API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"], allow_headers=["*"]
@@ -140,12 +141,14 @@ worker_started = False
 
 
 def _find_original(stem: str) -> Path:
+    if stem in _private_stems():
+        raise HTTPException(404, f"No original named {stem}")  # private photos are never served
     for ext in (".jpg", ".jpeg", ".png", ".webp"):
         p = settings.originals_dir / f"{stem}{ext}"
         if p.exists():
             return p
     for ext in (".png", ".jpg"):
-        p = Path("data/fixtures") / f"{stem}{ext}"
+        p = settings.fixtures_dir / f"{stem}{ext}"
         if p.exists():
             return p
     raise HTTPException(404, f"No original named {stem}")

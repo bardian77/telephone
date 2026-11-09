@@ -2,7 +2,8 @@
 
 Schema (see experiments/*.yaml):
   id, title, description, question      documentation, copied into the export
-  images: [globs]                        generation-0 images; "fixtures" expands to data/fixtures/*.png
+  images: [globs]                        generation-0 images; "fixtures" means the synthetic test
+                                         images; "data/..." is relative to TELEPHONE_DATA_DIR
   generations, seed, repeats             defaults 12, 7, 1
   extractor: {provider, model} | null    attribute extraction at every generation
   variants:                              one chain per image x variant x repeat
@@ -45,12 +46,30 @@ class Experiment:
         known = {f for f in cls.__dataclass_fields__ if f != "path"}
         return cls(**{k: v for k, v in raw.items() if k in known}, path=Path(path))
 
-    def resolve_images(self, root: Path = Path(".")) -> list[Path]:
+    def resolve_images(self, root: Path | None = None) -> list[Path]:
+        """Images matching the experiment's patterns.
+
+        `fixtures` means the synthetic test images in the data dir. A pattern starting with
+        `data/` is relative to the configured data dir (TELEPHONE_DATA_DIR), any other relative
+        pattern to the project root, so this works from any folder. Sub-folders such as
+        `data/originals/private/` are not searched: the patterns are not recursive.
+        """
+        from .config import get_settings
+        from .paths import project_root
+
+        root = root or project_root()
+        data_dir = get_settings().telephone_data_dir
         out: list[Path] = []
         for pat in self.images:
             if pat == "fixtures":
-                pat = "data/fixtures/*.png"
-            matches = sorted(glob.glob(str(root / pat)))
+                full = str(data_dir / "fixtures" / "*.png")
+            elif pat.startswith("data/"):
+                full = str(data_dir / pat[len("data/") :])
+            elif Path(pat).is_absolute():
+                full = pat
+            else:
+                full = str(root / pat)
+            matches = sorted(glob.glob(full))
             out.extend(Path(m) for m in matches)
         # de-duplicate, keep order
         seen: set[Path] = set()
@@ -67,7 +86,7 @@ class Experiment:
 
     def chains(
         self,
-        root: Path = Path("."),
+        root: Path | None = None,
         images: list[Path] | None = None,
         generations: int | None = None,
         repeats: int | None = None,
@@ -174,12 +193,19 @@ def mockify(chain: ChainConfig) -> ChainConfig:
     )
 
 
-def load_all(folder: Path = Path("experiments")) -> dict[str, Experiment]:
+def experiments_dir() -> Path:
+    from .paths import project_root
+
+    return project_root() / "experiments"
+
+
+def load_all(folder: Path | None = None) -> dict[str, Experiment]:
+    folder = folder or experiments_dir()
     exps = [Experiment.load(p) for p in sorted(Path(folder).glob("*.yaml"))]
     return {e.id: e for e in exps}
 
 
-def find(name: str, folder: Path = Path("experiments")) -> Experiment:
+def find(name: str, folder: Path | None = None) -> Experiment:
     exps = load_all(folder)
     if name in exps:
         return exps[name]

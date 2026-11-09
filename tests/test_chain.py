@@ -68,7 +68,7 @@ def test_estimate_counts_paid_calls(tmp_path):
 
 
 def test_experiments_load_and_expand(tmp_path):
-    exps = load_all(Path("/home/user/telephone/experiments"))
+    exps = load_all()  # found from the package location, whatever the cwd
     assert {
         "exp00_smoke",
         "exp01_compression",

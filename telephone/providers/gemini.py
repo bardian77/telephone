@@ -21,6 +21,7 @@ from .base import (
     ProviderUnavailable,
     Timer,
 )
+from .defaults import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
 
 
 def _client(api_key: str | None):
@@ -62,9 +63,9 @@ class GeminiVision:
     name = "gemini"
     supports_seed = False
 
-    def __init__(self, model: str = "gemini-2.5-flash", api_key: str | None = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None):
         self.client = _client(api_key)
-        self.model = model
+        self.model = model or VISION_DEFAULT_MODELS["gemini"]
 
     def _parts(self, image: bytes, prompt: str) -> list[Any]:
         from google.genai import types
@@ -118,9 +119,9 @@ class GeminiImageGen:
     name = "gemini"
     supports_seed = False  # the API accepts a seed but does not promise determinism
 
-    def __init__(self, model: str = "gemini-2.5-flash-image", api_key: str | None = None):
+    def __init__(self, model: str | None = None, api_key: str | None = None):
         self.client = _client(api_key)
-        self.model = model
+        self.model = model or IMAGE_DEFAULT_MODELS["gemini"]
 
     def generate(
         self, prompt: str, seed: int | None = None, width: int = 1024, height: int = 1024

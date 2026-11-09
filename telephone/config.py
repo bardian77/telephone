@@ -1,16 +1,23 @@
-"""Settings, loaded from environment variables and an optional .env file."""
+"""Settings, loaded from environment variables and the project's .env file.
+
+The .env file is the one at the project root (see telephone/paths.py), whatever the current
+directory is, and a relative data dir is anchored on the root too.
+"""
 
 from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from .paths import project_root
+from .providers.defaults import DEFAULT_CAPTIONER, DEFAULT_GENERATOR
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=None, env_file_encoding="utf-8", extra="ignore")
 
     # provider keys (all optional; a missing key disables that provider)
     anthropic_api_key: str | None = None
@@ -36,11 +43,14 @@ class Settings(BaseSettings):
     # paths
     telephone_data_dir: Path = Path("data")
 
-    # defaults
-    default_captioner: str = "anthropic"
-    default_caption_model: str = "claude-sonnet-5-5"
-    default_generator: str = "gemini"
-    default_generation_model: str = "gemini-2.5-flash-image"
+    @field_validator("telephone_data_dir", mode="after")
+    @classmethod
+    def _anchor_on_root(cls, v: Path) -> Path:
+        return v if v.is_absolute() else project_root() / v
+
+    # defaults (model ids come from telephone/providers/defaults.py)
+    default_captioner: str = DEFAULT_CAPTIONER
+    default_generator: str = DEFAULT_GENERATOR
     default_generations: int = 12
     default_seed: int = 7
 
@@ -66,10 +76,24 @@ class Settings(BaseSettings):
         return self.telephone_data_dir / "results"
 
     @property
+    def figures_dir(self) -> Path:
+        return self.telephone_data_dir / "figures"
+
+    @property
+    def fixtures_dir(self) -> Path:
+        return self.telephone_data_dir / "fixtures"
+
+    @property
     def originals_dir(self) -> Path:
         return self.telephone_data_dir / "originals"
+
+    @property
+    def private_dir(self) -> Path:
+        """Photographs that are processed on request but never exported or served."""
+        return self.originals_dir / "private"
 
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    env_file = project_root() / ".env"
+    return Settings(_env_file=env_file if env_file.exists() else None)

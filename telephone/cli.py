@@ -1,4 +1,9 @@
-"""Command line interface. `telephone --help`."""
+"""Command line interface. `telephone --help`.
+
+Works from any folder: paths anchor on the project root (telephone/paths.py). Errors a user can
+act on (a missing key, a blown spend cap, an unknown experiment, a bad folder) end the command
+with one red line; tracebacks only appear with -v.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +16,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from . import __version__
+from . import __version__, paths
 from .config import get_settings
 from .models import ChainConfig, StationConfig
 
@@ -20,6 +25,13 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 console = Console()
+_verbose = False
+MOCK_HELP = "Use the offline mock stand-ins for every model station; results are filed under '<experiment>-mock'"
+
+
+def _fail(message: str, code: int = 2) -> None:
+    console.print(f"[bold red]{message}", soft_wrap=True)
+    raise typer.Exit(code)
 
 
 def _runner(
@@ -86,8 +98,46 @@ def parse_stations(spec: str, captioner: str | None, generator: str | None) -> l
     return out
 
 
+def _extractor_from(spec: str | None) -> StationConfig | None:
+    """'none' -> no extraction; None -> the default captioner; 'provider[/model]' otherwise."""
+    if spec is None:
+        return StationConfig(kind="extract")
+    if spec == "none":
+        return None
+    prov, _, model = spec.partition("/")
+    return StationConfig(kind="extract", provider=prov or None, model=model or None)
+
+
+def _run_guarded(runner, cfg: ChainConfig) -> bool:
+    """Run one chain. A missing key or a blown cap ends the command with one line; any other
+    failure is reported in one line and the caller moves on. Returns True on success."""
+    from .cost import SpendCapExceeded
+    from .providers import ProviderUnavailable
+
+    try:
+        runner.run(cfg)
+        return True
+    except SpendCapExceeded as e:
+        _fail(str(e))
+    except ProviderUnavailable as e:
+        _fail(
+            f"{e}. Put the key in .env at the project root (see .env.example), or run with "
+            "--mock to use the offline stand-ins."
+        )
+    except ValueError as e:
+        _fail(str(e))
+    except Exception as e:  # noqa: BLE001
+        if _verbose:
+            logging.getLogger("telephone").exception("chain failed")
+        hint = "" if _verbose else "  (run with -v for the traceback)"
+        console.print(f"[bold red]chain failed: {type(e).__name__}: {e}{hint}", soft_wrap=True)
+    return False
+
+
 @app.callback()
 def _main(verbose: bool = typer.Option(False, "--verbose", "-v")):
+    global _verbose
+    _verbose = verbose
     logging.basicConfig(
         level=logging.INFO if verbose else logging.WARNING,
         format="%(levelname)s %(name)s: %(message)s",
@@ -108,31 +158,34 @@ def run_chain(
     generations: int = typer.Option(None, help="Default from settings (12)"),
     seed: int = typer.Option(None),
     captioner: str = typer.Option(
-        None, help="provider[/model], e.g. anthropic/claude-sonnet-5-5 or mock"
+        None, help="provider[/model] for the caption station, e.g. anthropic, gemini or mock"
     ),
-    generator: str = typer.Option(None, help="provider[/model], e.g. gemini, cloudflare, mock"),
+    generator: str = typer.Option(
+        None, help="provider[/model] for the regenerate station, e.g. gemini, cloudflare or mock"
+    ),
     extractor: str = typer.Option(
-        "anthropic", help="provider[/model] for attribute extraction, or 'none'"
+        None,
+        help="provider[/model] for attribute extraction (default: the captioner's default "
+        "provider), or 'none'",
     ),
+    mock: bool = typer.Option(False, "--mock", help=MOCK_HELP),
     experiment: str = typer.Option("adhoc", help="Experiment id to file this chain under"),
     name: str = typer.Option(None, help="Chain id (default derived from image and stations)"),
     no_clip: bool = typer.Option(False, help="Skip CLIP embeddings"),
     lpips: bool = typer.Option(False, help="Also compute LPIPS (slow, needs weights)"),
 ):
     """Run a single chain on one image."""
+    from .experiments import MOCK_SUFFIX
+
     s = get_settings()
+    if mock:
+        captioner, generator, extractor = "mock", "mock", "mock"
+        if not experiment.endswith(MOCK_SUFFIX):
+            experiment += MOCK_SUFFIX
     st = parse_stations(
         stations, captioner or s.default_captioner, generator or s.default_generator
     )
-    ex = (
-        None
-        if extractor == "none"
-        else StationConfig(
-            kind="extract",
-            provider=extractor.partition("/")[0],
-            model=extractor.partition("/")[2] or None,
-        )
-    )
+    ex = _extractor_from(extractor)
     cfg = ChainConfig(
         chain_id=name
         or f"{experiment}__{stations.replace(':', '-').replace(',', '_')}__{image.stem}",
@@ -147,9 +200,10 @@ def run_chain(
     calls, est = runner.estimate(cfg)
     console.print(f"estimate: {calls} paid calls, about ${est:.3f} (cache ignored)", style="dim")
     _check_budget(est)
-    recs = runner.run(cfg)
-    _cost_line(runner)
-    console.print(f"{len(recs)} generations in ledger at {s.ledger_path}")
+    if _run_guarded(runner, cfg):
+        _cost_line(runner)
+        n = len(runner.ledger.chain(cfg.chain_id, cfg.repeat))
+        console.print(f"{n} generations in ledger at {s.ledger_path}")
 
 
 def _cost_line(runner) -> None:
@@ -170,13 +224,31 @@ def _check_budget(estimate_usd: float) -> None:
 
     t = get_tracker()
     if estimate_usd > t.remaining():
-        console.print(
-            f"[red]Estimated cost ${estimate_usd:.2f} exceeds the remaining budget "
+        _fail(
+            f"Estimated cost ${estimate_usd:.2f} exceeds the remaining budget "
             f"${t.remaining():.2f} (spent ${t.total_usd:.2f} of the ${t.cap_usd:.2f} cap, "
             "TELEPHONE_SPEND_CAP_USD). Run less (--limit, --variant, --generations) or raise "
             "the cap."
         )
-        raise typer.Exit(2)
+
+
+def _no_chains(exp, images: list[Path] | None, variant: list[str] | None) -> None:
+    s = get_settings()
+    if not images and not exp.resolve_images():
+        if "fixtures" in exp.images:
+            hint = "run `telephone make-fixtures` to create the synthetic test images"
+        else:
+            hint = (
+                f"add photographs to {s.originals_dir} (named <type>_<slug>.jpg, see "
+                "data/originals/README.md), or pass --image"
+            )
+        _fail(f"No images for {exp.id}. It looks for {exp.images}; {hint}.", code=1)
+    names = [v["name"] for v in exp.variants]
+    _fail(
+        f"No chains left after filtering. The variants of {exp.id} are {names}; check --variant "
+        "and --limit.",
+        code=1,
+    )
 
 
 @app.command("run-experiment")
@@ -201,12 +273,21 @@ def run_experiment(
         help="Skip attribute extraction (the survival form) even if the experiment defines one; "
         "needs no vision model and no key",
     ),
+    mock: bool = typer.Option(False, "--mock", help=MOCK_HELP),
 ):
     """Run every chain of an experiment (resumable; cached stations cost nothing)."""
-    from .experiments import find
+    from .experiments import find, mockify
 
-    exp = find(name)
+    try:
+        exp = find(name)
+    except KeyError as e:
+        _fail(str(e).strip("'\""))
     chains = exp.chains(images=images or None, generations=generations, repeats=repeats)
+    extractor_cfg = None if no_extract else exp.extractor_config()
+    if mock:
+        chains = [mockify(c) for c in chains]
+        if extractor_cfg is not None:
+            extractor_cfg = StationConfig(kind="extract", provider="mock")
     if variant:
         chains = [c for c in chains if any(c.chain_id.split("__")[1] == v for v in variant)]
     if physical_root:
@@ -217,17 +298,14 @@ def run_experiment(
     if limit:
         chains = chains[:limit]
     if not chains:
-        console.print(
-            "[red]No chains: are there images in data/originals? (telephone make-fixtures for test images)"
-        )
-        raise typer.Exit(1)
+        _no_chains(exp, images, variant)
     use_lpips = exp.metrics.get("lpips", False) if lpips is None else lpips
-    extractor_cfg = None if no_extract else exp.extractor_config()
     runner = _runner(
         extractor_cfg, clip=not no_clip and exp.metrics.get("clip", True), lpips=use_lpips
     )
     total_calls, total_cost = 0, 0.0
-    table = Table(title=f"{exp.id}: {len(chains)} chains", show_lines=False)
+    title = f"{chains[0].experiment_id}: {len(chains)} chains"
+    table = Table(title=title, show_lines=False)
     table.add_column("chain")
     table.add_column("stations")
     table.add_column("gens", justify="right")
@@ -252,32 +330,27 @@ def run_experiment(
     if dry_run:
         return
     _check_budget(total_cost)
+    failed = 0
     for i, c in enumerate(chains, 1):
         console.rule(
             f"[bold]{i}/{len(chains)} {c.chain_id}[/]  {c.station_sequence()}  x{c.generations}"
         )
-        try:
-            runner.run(c)
-        except Exception as e:  # noqa: BLE001
-            from .cost import SpendCapExceeded
-
-            if isinstance(e, SpendCapExceeded):
-                console.print(f"[bold red]{e}")
-                raise typer.Exit(2) from e
-            console.print(f"[bold red]chain failed: {type(e).__name__}: {e}")
-            logging.getLogger("telephone").exception("chain failed")
+        if not _run_guarded(runner, c):
+            failed += 1
     _cost_line(runner)
+    if failed:
+        console.print(f"[yellow]{failed} of {len(chains)} chains failed; see the lines above.")
 
 
 @app.command("list")
 def list_cmd(experiment: str = typer.Option(None)):
     """Experiments defined and chains in the ledger."""
-    from .experiments import load_all
+    from .experiments import experiments_dir, load_all
     from .ledger import Ledger
 
     s = get_settings()
     exps = load_all()
-    t = Table(title="experiments/")
+    t = Table(title=str(experiments_dir()))
     t.add_column("id")
     t.add_column("title")
     t.add_column("variants", justify="right")
@@ -344,6 +417,15 @@ def cost():
         )
 
 
+@app.command()
+def doctor(as_json: bool = typer.Option(False, "--json", help="Machine-readable output")):
+    """What is installed, which keys are set, where the photos are, and what can run now."""
+    from .doctor import collect, render_text
+
+    d = collect()
+    typer.echo(json.dumps(d, indent=2) if as_json else render_text(d))
+
+
 @app.command("save-results")
 def save_results(
     experiment: Annotated[str, typer.Argument(help="Experiment id, e.g. exp01_compression")],
@@ -354,15 +436,13 @@ def save_results(
 
     s = get_settings()
     if not s.ledger_path.exists():
-        console.print("[red]ledger: empty, nothing to save")
-        raise typer.Exit(1)
+        _fail("ledger: empty, nothing to save", code=1)
     led = Ledger(s.ledger_path)
     known = [row["experiment_id"] for row in led.experiments()]
     if experiment not in known:
         matches = [k for k in known if k.startswith(experiment)]
         if len(matches) != 1:
-            console.print(f"[red]No experiment {experiment!r} in the ledger. Known: {known}")
-            raise typer.Exit(1)
+            _fail(f"No experiment {experiment!r} in the ledger. Known: {known}", code=1)
         experiment = matches[0]
     path = out or s.results_dir / f"{experiment}.jsonl"
     n = led.save_results(experiment, path)
@@ -383,31 +463,38 @@ def load_results(
 
 
 @app.command("make-fixtures")
-def make_fixtures(folder: Path = typer.Option(Path("data/fixtures"))):
-    """Write the five synthetic test images."""
+def make_fixtures(
+    folder: Path = typer.Option(None, help="Default: data/fixtures (only exp00 reads it)"),
+):
+    """Write the five synthetic test images that exp00 (the smoke test) runs on."""
     from .fixtures import make_all
 
-    for p in make_all(folder):
+    for p in make_all(folder or get_settings().fixtures_dir):
         console.print(f"wrote {p}")
 
 
 @app.command()
 def render(
     experiment: str = typer.Argument(None, help="Experiment id, or all when omitted"),
-    out: Path = typer.Option(Path("data/figures")),
+    out: Path = typer.Option(None, help="Default: data/figures"),
 ):
     """Contact sheets, drift curves and survival heatmaps from the ledger."""
     from .render import render_all
 
-    for p in render_all(experiment, out):
+    for p in render_all(experiment, out or get_settings().figures_dir):
         console.print(f"wrote {p}")
 
 
 @app.command()
 def export(
-    out: Path = typer.Option(Path("web/public/data")),
+    out: Path = typer.Option(None, help="Default: web/public/data at the project root"),
     thumb: int = typer.Option(512, help="Thumbnail long edge"),
-    include_private: bool = typer.Option(False),
+    include_private: bool = typer.Option(
+        False, help="Also export photographs from data/originals/private/"
+    ),
+    include_mock: bool = typer.Option(
+        False, help="Also export runs on mock providers ('-mock' experiments)"
+    ),
     experiment: list[str] = typer.Option(None, help="Only these experiment ids"),
     clean: bool = typer.Option(False, help="Delete the output folder first"),
 ):
@@ -415,24 +502,26 @@ def export(
     from .export import export_all
 
     summary = export_all(
-        out,
+        out or paths.project_root() / "web" / "public" / "data",
         thumb_size=thumb,
         include_private=include_private,
         experiments=experiment or None,
         clean=clean,
+        include_mock=include_mock,
     )
     console.print(json.dumps(summary, indent=2))
 
 
 @app.command()
 def validate(
-    labels: Path = typer.Option(Path("analysis/validation/labels.csv")),
-    out: Path = typer.Option(Path("analysis/validation/report.md")),
+    labels: Path = typer.Option(None, help="Default: analysis/validation/labels.csv"),
+    out: Path = typer.Option(None, help="Default: analysis/validation/report.md"),
 ):
     """Agreement between hand labels and the automated measures."""
     from .validate import agreement_report
 
-    console.print(agreement_report(labels, out))
+    folder = paths.project_root() / "analysis" / "validation"
+    console.print(agreement_report(labels or folder / "labels.csv", out or folder / "report.md"))
 
 
 @app.command()
@@ -440,7 +529,9 @@ def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     """Run the FastAPI service (static results, optional live runs)."""
     import uvicorn
 
-    uvicorn.run("api.main:app", host=host, port=port, reload=reload)
+    uvicorn.run(
+        "api.main:app", host=host, port=port, reload=reload, app_dir=str(paths.project_root())
+    )
 
 
 if __name__ == "__main__":

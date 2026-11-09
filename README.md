@@ -16,11 +16,28 @@ This is the Experimentation Portfolio for *5IMAG022W The Networked Photograph* (
 |---|---|---|
 | `platform` | resize to a platform's maximum edge, re-encode JPEG at its quality, strip metadata | Pillow, presets `instagram` `whatsapp` `twitter` `facebook` `messenger` `harsh` `gentle` `screenshot` |
 | `caption` | describe the image in `short` (20 words), `detailed` (150 words) or `literal` (noun inventory) mode | Claude Sonnet 5.5 (`claude-sonnet-5-5`) |
-| `regenerate` | text-to-image from the current caption | Gemini 2.5 Flash Image (free tier); FLUX.1 schnell on Cloudflare Workers AI (free tier, seeded) |
+| `regenerate` | text-to-image from the current caption | Gemini 2.5 Flash Image (billed at list price unless `GEMINI_FREE_TIER=1`); FLUX.1 schnell on Cloudflare Workers AI (free tier, seeded) |
 | `extract` | fill a fixed JSON schema (objects, people count, visible text, setting, lighting, mood, dominant colours, camera angle, reads-as-photograph) | Claude Sonnet 5.5 with structured outputs |
 | `physical` | pick up a phone photograph of a screen showing the previous generation | your camera |
 
 A *chain* is one original image plus an ordered list of stations, repeated for N generations (default 12). An *experiment* is a YAML file in `experiments/` that expands to many chains (images × variants × repeats).
+
+## Glossary
+
+One plain sentence for each word the rest of this README leans on.
+
+- **Station**: one step a picture goes through. `platform` squeezes it the way an upload does, `caption` has a vision model describe it, `regenerate` has an image model redraw it from that description, `extract` fills in the survival form, `physical` picks up a photo of a screen.
+- **Chain**: one photograph plus an ordered list of stations, run round and round.
+- **Generation**: one trip round the loop. Generation 0 is the original; generation 1 is what comes out after one trip.
+- **Variant**: one named list of stations inside an experiment file, such as the `harsh` preset in experiment 1. An experiment runs every variant on every photograph.
+- **Repeat**: the same chain run again with a different seed, to see how much a non-deterministic model varies.
+- **Extractor**: the vision model that fills in the survival form (objects, people, text, setting, lighting, mood, colours, camera angle, photograph or not) at every generation. Experiments name it separately from the stations; `--no-extract` switches it off.
+- **Drift**: how far a generation has moved from the original, as a number. CLIP distance and colour-histogram distance for every chain, SSIM and LPIPS where pixel structure still means something.
+- **Survival**: which answers on the survival form still match generation 0, and the first generation at which each one stops matching.
+- **CLIP**: an image-recognition model that turns a picture into a list of numbers describing what it shows. The distance between two pictures is 0 when they are identical; two different photographs from this project are about 0.43 apart.
+- **SSIM**: structural similarity, a comparison of pixel structure. 1 means identical; one Instagram-style re-save scores about 0.99.
+- **LPIPS**: a learned measure of how different two pictures look, trained on human judgements. 0 means identical.
+- **Mock provider**: a fake stand-in that costs nothing, used by the tests, CI and `--mock`. Its output is a simulation, not a result, and is filed under `<experiment>-mock`.
 
 ## Measurement
 
@@ -49,14 +66,25 @@ Every proxy is a proxy. The README of a results-bearing repo should say where th
 git clone https://github.com/bardian77/telephone && cd telephone
 uv venv .venv && source .venv/bin/activate
 uv pip install -e ".[all]"                      # torch CPU: add --index-url https://download.pytorch.org/whl/cpu for torch/torchvision first
-cp .env.example .env                            # add ANTHROPIC_API_KEY and GEMINI_API_KEY (free at aistudio.google.com)
-telephone make-fixtures                         # synthetic test images
-telephone run-experiment exp00 --no-clip        # whole pipeline on mocks, zero spend
-telephone render exp00_smoke && telephone export --experiment exp00_smoke
+cp .env.example .env                            # add ANTHROPIC_API_KEY and GEMINI_API_KEY (key from aistudio.google.com)
+telephone doctor                                # what is installed, which keys are set, what can run now
+telephone run-experiment exp01 --no-extract     # compression only on your photographs; needs no key
+telephone save-results exp01_compression        # data/results/<experiment>.jsonl, safe to commit
+telephone render exp01_compression && telephone export --experiment exp01_compression
 cd web && npm ci && npm run dev                 # site on http://localhost:5173 showing the export
 ```
 
-Then with your own photographs in `data/originals/` (see the README there for naming and consent):
+Commands work from any folder: paths anchor on the project root (the folder with `pyproject.toml` and `experiments/`, or `TELEPHONE_ROOT`).
+
+Everything also runs with no keys on the offline stand-ins, which is what the tests and CI do:
+
+```bash
+telephone make-fixtures                         # five synthetic test images; only exp00 uses them
+telephone run-experiment exp00 --no-clip        # the smoke test, mock providers, zero spend
+telephone run-experiment exp02 --mock --no-clip # any experiment on mocks; filed under exp02_caption_length-mock
+```
+
+Then with keys and your own photographs in `data/originals/` (see the README there for naming and consent):
 
 ```bash
 telephone run-experiment exp01 --dry-run        # chains, paid calls, cost estimate; runs nothing
@@ -68,11 +96,11 @@ telephone export                                # web/public/data for the site
 python log/build_deck.py                        # the research log as pptx + pdf
 ```
 
-Keys live in `.env` or the environment, never in the repo. `TELEPHONE_SPEND_CAP_USD` (default 20) stops a process before the call that would exceed it.
+Keys live in `.env` at the project root or in the environment, never in the repo. `TELEPHONE_SPEND_CAP_USD` (default 15) is a lifetime cap: every paid call is logged in the ledger, and a call that would take the total over the cap is refused before it is made. Gemini is costed at list price unless `GEMINI_FREE_TIER=1` says your key is on the free tier.
 
 ## Design choices and tradeoffs
 
-- **Ledger first.** One SQLite + JSONL row per generation (`telephone/ledger.py`) with models, versions, prompt, seed, every metric, cost and latency. Figures, the site and the API are views of it. Re-running anything is idempotent.
+- **Ledger first.** One SQLite row per generation (`telephone/ledger.py`) with models, versions, prompt, seed, every metric, cost and latency, plus an append-only log of every paid call. Figures, the site and the API are views of it. The ledger is local state; `telephone save-results` writes an experiment's rows as sorted JSONL under `data/results/`, which is committed and can be reloaded with `load-results`. A chain is resumed only from rows whose station configuration matches its fingerprint, so a run on mock providers or another model is never continued as a real one.
 - **Content-addressed cache.** A station's output is keyed on the input image hash, the station config, the model and the seed (`telephone/cache.py`). Repeated views, re-renders and resumed runs never call a provider. The cache is also what makes `--dry-run` estimates honest about what will actually be paid.
 - **Cost is reserved before the call, committed after.** `telephone/cost.py` tracks paid cost and list price separately, so free-tier runs still report what a commercial reproduction would cost.
 - **Structured outputs over prose parsing.** The survival schema is a pydantic model passed to the Anthropic SDK's `messages.parse`; a malformed reading is a refusal, not a silently broken row.
@@ -99,13 +127,13 @@ api/                  FastAPI service (static export + optional capped live runs
 web/                  Vite + React + TypeScript site; web/public/data/sample is a committed export of the smoke test
 analysis/             figures.py and the validation folder
 log/                  research log outline and deck builder
-data/                 originals/ (yours, gitignored), fixtures/, runs/ and cache/ (gitignored), figures/
+data/                 originals/ (your photographs, committed; originals/private/ is not), results/ (committed snapshots of real runs), figures/, and the local-only ledger, runs/ and cache/
 tests/                offline tests on mock providers
 ```
 
 ## Ethics
 
-Only photographs I took are used as starting images. People appear only with consent, and anything marked in `data/originals/private.txt` is processed but never exported to the site. Visitors cannot upload images; the live demo runs on my photographs only, so nothing from a visitor is ever stored. Free-tier providers may use inputs to improve their services, which is another reason only my own images go through them. Generated images keep whatever watermark the provider adds.
+Only photographs I took are used as starting images. People appear only with consent, and anything under `data/originals/private/` is processed only when named explicitly and is never exported to the site or served by the API. Visitors cannot upload images; the live demo runs on my photographs only, so nothing from a visitor is ever stored. Free-tier providers may use inputs to improve their services, which is another reason only my own images go through them. Generated images keep whatever watermark the provider adds.
 
 ## Licence
 

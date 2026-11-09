@@ -21,15 +21,19 @@ def _isolate_env(monkeypatch, tmp_path):
         "OPENAI_API_KEY",
     ]:
         monkeypatch.delenv(k, raising=False)
+    monkeypatch.delenv("TELEPHONE_ROOT", raising=False)
     monkeypatch.setenv("TELEPHONE_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("TELEPHONE_SPEND_CAP_USD", "5")
     monkeypatch.chdir(tmp_path)
+    from telephone import paths
     from telephone.config import get_settings
 
+    paths.project_root.cache_clear()
     get_settings.cache_clear()
     cost.reset_tracker(5.0)
     yield
     get_settings.cache_clear()
+    paths.project_root.cache_clear()
 
 
 def make_test_image(

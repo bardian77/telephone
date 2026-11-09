@@ -24,6 +24,7 @@ jobs:
         run: .venv/bin/pytest -q
       - name: Smoke experiment (mock providers, no keys, no spend)
         run: |
+          .venv/bin/telephone doctor
           .venv/bin/telephone make-fixtures
           .venv/bin/telephone run-experiment exp00 --no-clip
           .venv/bin/telephone render exp00_smoke

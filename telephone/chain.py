@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import paths
 from .cache import StationCache
 from .config import Settings, get_settings
 from .imageio import load_image, media_type_of, save_bytes, sha256_bytes, to_png_bytes
@@ -192,7 +193,7 @@ class ChainRunner:
 
         def resumable(rec: GenerationRecord | None) -> bool:
             nonlocal warned_config
-            if rec is None or rec.error is not None or not Path(rec.output_path).exists():
+            if rec is None or rec.error is not None or not paths.resolve(rec.output_path).exists():
                 return False
             if rec.config_sha != sha:
                 if not warned_config:
@@ -210,7 +211,7 @@ class ChainRunner:
         g0_rec = self.ledger.get(cfg.chain_id, 0, cfg.repeat)
         if resumable(g0_rec):
             assert g0_rec is not None
-            g0 = Path(g0_rec.output_path).read_bytes()
+            g0 = paths.resolve(g0_rec.output_path).read_bytes()
             self.emit("resume", chain_id=cfg.chain_id, generation=0)
         else:
             g0 = to_png_bytes(load_image(cfg.image))
@@ -235,7 +236,7 @@ class ChainRunner:
                 seed=cfg.seed,
                 config_sha=sha,
                 input_sha=None,
-                output_path=str(g0_path),
+                output_path=paths.to_stored(g0_path),
                 output_sha=sha256_bytes(g0),
                 attributes=attrs0,
                 survival=compare_attributes(attrs0, attrs0) if attrs0 else None,
@@ -263,7 +264,7 @@ class ChainRunner:
             existing = self.ledger.get(cfg.chain_id, gen, cfg.repeat)
             if resumable(existing):
                 assert existing is not None
-                prev = Path(existing.output_path).read_bytes()
+                prev = paths.resolve(existing.output_path).read_bytes()
                 prev_emb = self._clip_embed(prev)
                 records.append(existing)
                 self.emit("resume", chain_id=cfg.chain_id, generation=gen)
@@ -341,7 +342,7 @@ class ChainRunner:
                 seed=cfg.seed,
                 config_sha=sha,
                 input_sha=ctx.input_sha,
-                output_path=str(out_path),
+                output_path=paths.to_stored(out_path),
                 output_sha=sha256_bytes(image),
                 attributes=attrs,
                 survival=survival,
