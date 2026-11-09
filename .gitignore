@@ -24,6 +24,8 @@ data/ledger.jsonl
 data/originals/private/*
 !data/originals/private/README.md
 data/cache/
+# model files downloaded on demand (Haar cascade)
+data/models/
 # per-chain contact sheets are regenerated from data/runs by `telephone render`
 data/figures/*/contact_sheets/
 # figures of mock runs are not results
