@@ -20,7 +20,12 @@ def _pair_gray(image_a: bytes, image_b: bytes, size: int = 512) -> tuple[np.ndar
 
 
 def ssim_score(image_a: bytes, image_b: bytes) -> float:
-    """Structural similarity, 1 identical. Uses scikit-image when present, else a windowed fallback."""
+    """Structural similarity, 1 identical.
+
+    Uses scikit-image's windowed SSIM when installed. Without it, falls back to a single global
+    SSIM term over the whole image, which barely reacts to local JPEG damage and is not
+    comparable to published SSIM values. Install scikit-image for the real metric.
+    """
     ga, gb = _pair_gray(image_a, image_b)
     try:
         from skimage.metrics import structural_similarity
@@ -31,6 +36,7 @@ def ssim_score(image_a: bytes, image_b: bytes) -> float:
 
 
 def _ssim_global(a: np.ndarray, b: np.ndarray) -> float:
+    """One SSIM term over the whole image (no sliding window). A coarse stand-in only."""
     c1, c2 = (0.01 * 255) ** 2, (0.03 * 255) ** 2
     mu_a, mu_b = a.mean(), b.mean()
     va, vb = a.var(), b.var()

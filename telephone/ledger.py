@@ -151,6 +151,22 @@ class Ledger:
         self.conn.commit()
         return cur.rowcount
 
+    def save_results(self, experiment_id: str, path: Path) -> int:
+        """Write every row of one experiment as sorted JSONL (chain, repeat, generation).
+
+        The file is a snapshot of SQLite, written whole each time, so it never drifts from the
+        database and is safe to commit. `import_jsonl` reads it back.
+        """
+        recs = self.experiment(experiment_id)
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        with tmp.open("w", encoding="utf-8") as f:
+            for rec in recs:
+                f.write(json.dumps(rec.to_row(), sort_keys=True) + "\n")
+        tmp.replace(path)
+        return len(recs)
+
     def import_jsonl(self, path: Path) -> int:
         n = 0
         for line in Path(path).read_text(encoding="utf-8").splitlines():

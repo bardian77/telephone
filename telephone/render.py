@@ -143,7 +143,9 @@ def _series(
             for r in recs
             if r.error is None and (v := metric_value(r, metric)) is not None
         ]
-        if pts:
+        # a single point (generation 0 is hard-coded to 0 distance / 1 similarity even when the
+        # metric could not be computed) is not a curve
+        if len(pts) >= 2:
             out[cid] = pts
     return out
 

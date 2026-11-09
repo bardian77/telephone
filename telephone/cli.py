@@ -175,6 +175,12 @@ def run_experiment(
     ),
     no_clip: bool = typer.Option(False),
     lpips: bool = typer.Option(None, help="Override the experiment's lpips setting"),
+    no_extract: bool = typer.Option(
+        False,
+        "--no-extract",
+        help="Skip attribute extraction (the survival form) even if the experiment defines one; "
+        "needs no vision model and no key",
+    ),
 ):
     """Run every chain of an experiment (resumable; cached stations cost nothing)."""
     from .experiments import find
@@ -196,8 +202,9 @@ def run_experiment(
         )
         raise typer.Exit(1)
     use_lpips = exp.metrics.get("lpips", False) if lpips is None else lpips
+    extractor_cfg = None if no_extract else exp.extractor_config()
     runner = _runner(
-        exp.extractor_config(), clip=not no_clip and exp.metrics.get("clip", True), lpips=use_lpips
+        extractor_cfg, clip=not no_clip and exp.metrics.get("clip", True), lpips=use_lpips
     )
     total_calls, total_cost = 0, 0.0
     table = Table(title=f"{exp.id}: {len(chains)} chains", show_lines=False)
@@ -303,6 +310,44 @@ def cost():
         console.print(
             f"  {row['experiment_id']:<24} chains {row['chains']:>3}  gens {row['generations']:>4}  paid ${row['cost_usd']:.4f}  list ${row['list_price_usd']:.4f}"
         )
+
+
+@app.command("save-results")
+def save_results(
+    experiment: Annotated[str, typer.Argument(help="Experiment id, e.g. exp01_compression")],
+    out: Path = typer.Option(None, help="Output file (default data/results/<experiment>.jsonl)"),
+):
+    """Write one experiment's ledger rows to a sorted JSONL file that can be committed."""
+    from .ledger import Ledger
+
+    s = get_settings()
+    if not s.ledger_path.exists():
+        console.print("[red]ledger: empty, nothing to save")
+        raise typer.Exit(1)
+    led = Ledger(s.ledger_path)
+    known = [row["experiment_id"] for row in led.experiments()]
+    if experiment not in known:
+        matches = [k for k in known if k.startswith(experiment)]
+        if len(matches) != 1:
+            console.print(f"[red]No experiment {experiment!r} in the ledger. Known: {known}")
+            raise typer.Exit(1)
+        experiment = matches[0]
+    path = out or s.telephone_data_dir / "results" / f"{experiment}.jsonl"
+    n = led.save_results(experiment, path)
+    console.print(f"wrote {n} rows to {path}")
+
+
+@app.command("load-results")
+def load_results(
+    file: Annotated[Path, typer.Argument(exists=True, help="A file written by save-results")],
+):
+    """Load a saved results file into the ledger. Rows with the same key are replaced."""
+    from .ledger import Ledger
+
+    s = get_settings()
+    led = Ledger(s.ledger_path)
+    n = led.import_jsonl(file)
+    console.print(f"loaded {n} rows into {s.ledger_path}")
 
 
 @app.command("make-fixtures")
