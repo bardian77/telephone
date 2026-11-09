@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "skills": {
+    "humanizer": {
+      "source": "blader/humanizer",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "1e67c3a4a675bd0c961b1fd8ebb718174f9a61a547d9bedad2ade5eb99cce831",
+      "installMode": "copy"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pptx/SKILL.md",
+      "computedHash": "58dc62ed26c7f6349ba70c4fb04636042eb0295ea60bbab5ead628b6d8c495f6",
+      "installMode": "copy"
+    },
+    "scientific-visualization": {
+      "source": "K-Dense-AI/claude-scientific-skills",
+      "sourceType": "github",
+      "skillPath": "skills/scientific-visualization/SKILL.md",
+      "computedHash": "5477b78120e75a65aed0f6e15dbf71b8669cca9160c2036847fd7bb45a3344c1",
+      "installMode": "copy"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/webapp-testing/SKILL.md",
+      "computedHash": "ad5b1fc52807e9afa4635e59218a026b164dc58b6c3f41b0f7c644dcd6ccf572",
+      "installMode": "copy"
+    }
+  }
+}
