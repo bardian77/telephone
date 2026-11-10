@@ -49,7 +49,9 @@ def create_app() -> FastAPI:
         # A page on another website must not be able to start runs on this machine.
         if request.method not in ("GET", "HEAD", "OPTIONS"):
             origin = request.headers.get("origin")
-            if origin and urlparse(origin).netloc != request.headers.get("host"):
+            # behind a preview pane or reverse proxy the page's own host arrives as forwarded
+            own = {request.headers.get("host"), request.headers.get("x-forwarded-host")}
+            if origin and urlparse(origin).netloc not in own:
                 return JSONResponse({"detail": "Cross-site request refused."}, status_code=403)
         response = await call_next(request)
         if request.url.path.startswith("/static/") or request.url.path == "/":

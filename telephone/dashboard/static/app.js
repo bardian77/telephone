@@ -2,7 +2,7 @@
 // The server (telephone/dashboard/server.py) owns every number and every sentence about a
 // result; this file lays them out and keeps the page in step with a running job.
 
-import { guideHtml, KEY_INFO, STATIONS } from "/static/guide.js";
+import { guideHtml, KEY_INFO, STATIONS } from "./guide.js";
 
 const main = document.getElementById("main");
 const railFoot = document.getElementById("rail-foot");
@@ -20,7 +20,10 @@ const money = (n) => usd.format(Number(n || 0));
 const pct = (pos) => `${Math.round(pos * 100)}%`;
 const int = new Intl.NumberFormat("en-GB");
 const plural = (n, word) => `${int.format(n)} ${word}${n === 1 ? "" : "s"}`;
-const withW = (url, w) => (url ? `${url}${url.includes("?") ? "&" : "?"}w=${w}` : "");
+// Addresses from the server start with "/". They are used relative to the page instead, so
+// the dashboard also works when it is served under a path prefix.
+const rel = (url) => (url && url.startsWith("/") ? url.slice(1) : url);
+const withW = (url, w) => (url ? `${rel(url)}${url.includes("?") ? "&" : "?"}w=${w}` : "");
 
 function duration(seconds) {
   const s = Math.round(seconds);
@@ -34,7 +37,7 @@ function kb(n) {
 }
 
 async function api(path, body) {
-  const res = await fetch(path, body === undefined ? {} : {
+  const res = await fetch(rel(path), body === undefined ? {} : {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -70,7 +73,9 @@ const STEPS = Array.from({ length: 20 }, (_, i) => {
   const v = Math.round(244 - (i * (244 - 26)) / 19);
   return `<i style="background:rgb(${v} ${v} ${v})"></i>`;
 }).join("");
-const BAND_SHORT = { same: "Same", worn: "Worn", drifting: "Drifting", different: "Different" };
+const BAND_SHORT = { same: "Same", worn: "Close", drifting: "Far", different: "Different" };
+const KEY_NAMES = { ANTHROPIC_API_KEY: "Claude", GEMINI_API_KEY: "Gemini", CLOUDFLARE_ACCOUNT_ID: "Cloudflare", CLOUDFLARE_API_TOKEN: "Cloudflare", REPLICATE_API_TOKEN: "Replicate", OPENAI_API_KEY: "OpenAI" };
+const listWords = (items) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
 
 // The step wedge: drift as a position between the original and a different photograph.
 function wedge(position, band, { compact = false } = {}) {
@@ -82,6 +87,9 @@ function wedge(position, band, { compact = false } = {}) {
     <div class="wedge-scale" aria-hidden="true">${Object.entries(BAND_SHORT)
       .map(([k, v]) => `<span${has && band?.key === k ? ' aria-current="true"' : ""}>${v}</span>`).join("")}</div>
     <div class="wedge-ends" aria-hidden="true"><span>The original</span><span>A different photograph</span></div>`;
+  const legend = !has && !compact && band === null;
+  if (legend) return `<div class="wedge" role="img" aria-label="The scale: from the original on the left to a different photograph on the right, in four bands: same, close, far, different.">
+    <div class="wedge-track"><div class="wedge-steps">${STEPS}</div></div>${scale}</div>`;
   return `<div class="wedge${compact ? " wedge-compact" : ""}${has ? "" : " wedge-none"}" role="img" aria-label="${esc(label)}">
     <div class="wedge-track"><div class="wedge-steps">${STEPS}</div>${
       has ? `<div class="wedge-mark"><i style="left:${(position * 100).toFixed(1)}%"></i></div>` : ""}</div>${scale}
@@ -144,7 +152,7 @@ function renderRail() {
       <span class="meter"><i style="transform:scaleX(${Math.min(1, done).toFixed(3)})"></i></span></a>`;
   }
   railFoot.innerHTML = `${run}
-    <div><div><strong class="num">${money(sp.paid_usd)}</strong> of ${money(sp.cap_usd)} spent</div>
+    <div><div>AI budget: <strong class="num">${money(sp.paid_usd)}</strong> of ${money(sp.cap_usd)} spent</div>
     <div class="meter" style="margin-top:6px" role="img" aria-label="${pct(used)} of the budget is spent"><i style="transform:scaleX(${used.toFixed(3)})"></i></div></div>`;
 }
 
@@ -188,7 +196,7 @@ function home(ov) {
       <div class="row"><a class="btn btn-primary" href="#/run">Watch the run</a></div>`;
   } else if (real.length) {
     next = `<h2>There are results to read</h2>
-      <p>${real.map((r) => `${esc(r.name)} has ${plural(r.chains, "chain")} across ${plural(r.photos, "photograph")}.`).join(" ")}</p>
+      <p>${real.map((r) => `“${esc(r.name)}” has been run on ${plural(r.photos, "photograph")}, ${plural(r.variants, "way")} each.`).join(" ")}</p>
       <div class="row"><a class="btn btn-primary" href="#/results/${encodeURIComponent(real[0].id)}">Read the results</a>
       <a class="btn" href="#/run">Run another experiment</a></div>`;
   } else if (firstFree) {
@@ -210,7 +218,7 @@ function home(ov) {
       <h3>${esc(p.name)} <small>${esc(p.type)}</small></h3>
       ${p.furthest ? `<a class="photo-result" href="#/chain/${encodeURIComponent(p.furthest.key)}">
           ${wedge(p.furthest.position, p.furthest.band, { compact: true })}
-          <span class="photo-result-text">Furthest so far: ${pct(p.furthest.position)} of the way, under ${esc(p.furthest.variant_label)}</span></a>`
+          <span class="photo-result-text">Most changed so far: ${pct(p.furthest.position)} of the way (${esc(p.furthest.variant_label)})</span></a>`
         : `<p class="note muted">${p.chains ? "Run, but drift was not measured" : "Not run yet"}</p>`}
     </li>`).join("")}</ul>`
     : `<p class="note">There are no photographs in <code>data/originals/</code> yet.</p>`;
@@ -228,12 +236,14 @@ function home(ov) {
     <section class="section">
       <h2>The loop</h2>
       <ul class="stations">${STATIONS.map((s) => `<li><span class="patch swatch" data-kind="${s.kind}"></span><h3>${s.role}</h3><p>${s.text}</p></li>`).join("")}</ul>
+      <p class="again">${icon("loop")}<span>The new picture goes back to the start, and round again.</span></p>
       <p class="note">One trip round the loop is a generation. After every trip two things are measured: drift (how far the picture has moved from the original) and survival (which facts about it are still true). <a href="#/guide">How it works</a> explains each step.</p>
       ${noKeys ? `<p class="status status-warn">${icon("info")}<span>No API keys are set, so the Reader and the Painter can only run as simulations. The compression experiment runs for real. <a href="#/setup">Setup</a> shows how to add a key.</span></p>` : ""}
     </section>
 
     <section class="section">
       <h2>The photographs</h2>
+      ${ov.photos.some((p) => p.furthest) ? `<div class="legend"><p class="note">The marker under each photograph shows how far its most changed copy has moved, on this scale. The names are a rule of thumb for a model’s score.</p>${wedge(null, null)}</div>` : ""}
       ${photos}
     </section>
   </div>`,
@@ -243,11 +253,20 @@ function home(ov) {
 // -- run: list -------------------------------------------------------------------------------
 
 function availability(e) {
-  if (e.blocked) return `<p class="status status-bad">${icon("cross")}<span>${esc(e.blocked)}</span></p>`;
+  if (e.blocked) return `<p class="status">${icon("info")}<span>${esc(e.blocked)}</span></p>`;
   if (e.modes.includes("real") && e.has_models) return `<p class="status status-good">${icon("check")}<span>Ready for a real run. It uses your API keys and costs money; you see the estimate first.</span></p>`;
   if (e.modes.includes("free")) return `<p class="status status-good">${icon("check")}<span>Ready. Runs on this computer and costs nothing.</span></p>`;
   if (e.uses_fixtures) return `<p class="status status-good">${icon("check")}<span>Ready. A simulation on made-up images, free.</span></p>`;
-  return `<p class="status status-warn">${icon("info")}<span>Simulation only for now. A real run needs ${esc(e.missing_keys.join(" and "))}.</span></p>`;
+  return `<p class="status status-warn">${icon("info")}<span>Simulation only for now. A real run needs ${e.missing_keys.length > 1 ? "keys" : "a key"} for ${esc(listWords([...new Set(e.missing_keys.map((k) => KEY_NAMES[k] ?? k))]))}. <a href="#/setup">Setup</a> shows how to add ${e.missing_keys.length > 1 ? "them" : "it"}.</span></p>`;
+}
+
+// Which stations an experiment uses at all, without implying one fixed order: its versions differ.
+function usesLine(e) {
+  const seen = new Map();
+  e.variants.forEach((v) => v.stations.forEach((s) => { if (!seen.has(s.kind)) seen.set(s.kind, s.role); }));
+  if (!seen.size) return "";
+  const chips = [...seen].map(([kind, role]) => `<li><span class="patch" data-kind="${esc(kind)}"></span><span class="role">${esc(role)}</span></li>`).join("");
+  return `<ul class="loop"><li>Uses</li>${chips}<li>· ${plural(e.variants.length, "version")} of the loop, ${plural(e.generations, "time")} round each</li></ul>`;
 }
 
 function runList(ov) {
@@ -257,7 +276,7 @@ function runList(ov) {
       <div class="exp-body">
         <h2>${esc(e.name)}</h2>
         <p>${esc(e.plain)}</p>
-        ${e.variants.length ? loopChips(e.variants[e.variants.length - 1].stations, e.generations) : ""}
+        ${usesLine(e)}
         ${availability(e)}
       </div>
       <div class="exp-side">
@@ -355,7 +374,7 @@ function liveUpdate(job) {
       const g0 = document.getElementById("live-g0");
       g0.removeAttribute("width"); g0.removeAttribute("height");
       g0.alt = "The original of the current chain";
-      g0.src = `/api/image/chain/${encodeURIComponent(key)}/0?w=900`;
+      g0.src = `api/image/chain/${encodeURIComponent(key)}/0?w=900`;
       views.hidden = false;
     }
     if (generation > 0) {
@@ -368,7 +387,7 @@ function liveUpdate(job) {
         img.hidden = false;
         document.getElementById("live-wait").hidden = true;
       };
-      next.src = `/api/image/chain/${encodeURIComponent(key)}/${generation}?w=900&t=${generation}`;
+      next.src = `api/image/chain/${encodeURIComponent(key)}/${generation}?w=900&t=${generation}`;
       document.getElementById("live-cap").textContent = `Generation ${generation}${job.current?.key === key ? `, ${job.current.label}` : ""}`;
     }
     live.key = key;
@@ -599,15 +618,16 @@ async function resultsExperiment(ov, id) {
   const multiples = measured ? `
     <section class="section">
       <h2>Drift over the generations</h2>
-      <p class="note">One small chart for each version of the loop, all on the same vertical scale. Each line is one photograph. Point at a line to see which.</p>
+      <p class="note" id="multiples-note">One small chart for each version of the loop, all on the same vertical scale. Each line is one photograph.</p>
       <div class="multiples" id="multiples">${d.variants.map((v, i) => `<div class="sheet multiple chart" data-variant="${i}"><h3>${esc(v.label)}</h3><div class="tip" hidden></div></div>`).join("")}</div>
     </section>` : "";
 
   const versions = `<section class="section"><h2>The versions of the loop</h2>
     <div class="choices">${d.variants.map((v) => `<div class="choice" style="cursor:default;grid-template-columns:minmax(0,1fr)"><span><b>${esc(v.label)}</b>${v.notes ? `<small>${esc(v.notes)}</small>` : ""}</span>${loopDetail(v.stations)}</div>`).join("")}</div></section>`;
 
-  const figures = d.figures.length ? `<section class="section"><h2>Figures for the deck</h2>
-      <div class="figs">${d.figures.map((f) => `<a href="${esc(f)}" target="_blank" rel="noopener"><img src="${esc(f)}" alt="Figure: ${esc(f.split("/").pop().replace(/[_.]/g, " "))}" loading="lazy"></a>`).join("")}</div></section>` : "";
+  const figures = d.figures.length ? `<details class="more"><summary>Figures made for the research log (${d.figures.length})</summary><div class="more-body">
+      <p class="note">These are the matplotlib charts written to <code>data/figures/</code> for the slides. They use their own colours and labels.</p>
+      <div class="figs">${d.figures.map((f) => `<a href="${esc(rel(f))}" target="_blank" rel="noopener"><img src="${esc(rel(f))}" alt="Figure: ${esc(f.split("/").pop().replace(/[_.]/g, " "))}" loading="lazy"></a>`).join("")}</div></div></details>` : "";
 
   return {
     title: d.name,
@@ -627,6 +647,7 @@ async function resultsExperiment(ov, id) {
       <section class="section">
         <h2>Where each photograph ended</h2>
         <p class="note">The marker shows how far the last generation is from its original. Choose a picture to see every generation.</p>
+        <p class="note scroll-cue">Scroll the table sideways to see every version.</p>
         ${grid}
       </section>
       ${multiples}
@@ -645,6 +666,7 @@ async function resultsExperiment(ov, id) {
       const host = document.getElementById("multiples");
       if (!host) return;
       const max = Math.max(...d.chains.flatMap((c) => c.drift.filter((v) => v != null)));
+      document.getElementById("multiples-note").append(` The top of the scale, ${niceMax(max).toFixed(2)}, is ${pct(Math.min(1, niceMax(max) / ov.scale.different_photo))} of the way to a different photograph. Point at a line to see which photograph it is.`);
       host.querySelectorAll(".multiple").forEach((el) => {
         const v = d.variants[Number(el.dataset.variant)];
         const series = d.chains.filter((c) => c.variant === v.name).map((c) => ({
@@ -652,6 +674,8 @@ async function resultsExperiment(ov, id) {
           points: c.drift.map((y, x) => ({ x, y })),
         }));
         drawChart(el, { series, yMax: niceMax(max), width: 300, height: 170, many: true, yLabel: "" });
+        const top = d.chains.filter((c) => c.variant === v.name && c.reading.drift != null).sort((a, b) => b.reading.drift - a.reading.drift)[0];
+        if (top) el.insertAdjacentHTML("beforeend", `<p class="multiple-top">Highest line: ${esc(top.photo_label.name)}, ${pct(top.reading.position)} of the way</p>`);
       });
     },
   };
@@ -704,7 +728,7 @@ async function chainView(ov, key, query) {
       <section class="compare-band" aria-label="The original next to one generation">
         <div class="compare">
           <figure>${g0.image ? `<img src="${withW(g0.image, 1200)}" width="${g0.metrics.width}" height="${g0.metrics.height}" alt="${esc(d.photo_label.name)}, the original">` : `<div class="missing">The pictures for this chain are not on this computer. Run the experiment again to recreate them.</div>`}
-            <figcaption><span>The original (generation 0)</span>${g0.file ? `<a href="${esc(g0.file)}" target="_blank" rel="noopener">Open the actual file</a>` : ""}</figcaption></figure>
+            <figcaption><span>The original (generation 0)</span>${g0.file ? `<a href="${esc(rel(g0.file))}" target="_blank" rel="noopener">Open the actual file</a>` : ""}</figcaption></figure>
           <figure><div id="gen-slot"></div>
             <figcaption><span id="gen-cap"></span><a id="gen-file" target="_blank" rel="noopener">Open the actual file</a></figcaption></figure>
         </div>
@@ -724,6 +748,7 @@ async function chainView(ov, key, query) {
         <div class="reading">
           <p class="reading-band" id="band"></p>
           <div id="wedge"></div>
+          <p class="note">The position comes from CLIP, an image-recognition model. The four names are a rule of thumb for its score. They are not a judgement of how the picture looks, which is what the two pictures above are for.</p>
         </div>
       </section>
 
@@ -789,7 +814,7 @@ async function chainView(ov, key, query) {
           img.width = m.width; img.height = m.height;
           img.alt = g === 0 ? `${d.photo_label.name}, the original` : `${d.photo_label.name} after ${plural(g, "generation")}`;
           img.src = withW(cur.image, 1200);
-          file.href = cur.file; file.hidden = false;
+          file.href = rel(cur.file); file.hidden = false;
           const nextGen = byGen.get(g + 1);
           if (nextGen?.image) new Image().src = withW(nextGen.image, 1200);
         } else {
@@ -801,7 +826,7 @@ async function chainView(ov, key, query) {
           band.innerHTML = `The original <small>Generation 0 is the photograph before it enters the loop.</small>`;
           wedgeEl.innerHTML = wedge(0, null);
         } else {
-          band.innerHTML = `${esc(cur.band.label)} <small>${cur.position == null ? esc(cur.band.meaning) : `${pct(cur.position)} of the way to a different photograph. ${esc(cur.band.meaning)}`}</small>`;
+          band.innerHTML = `${cur.position == null ? esc(cur.band.label) : `${pct(cur.position)} of the way to a different photograph`} <small>${cur.position == null ? "" : `${esc(cur.band.label)}. `}${esc(cur.band.meaning)}</small>`;
           wedgeEl.innerHTML = wedge(cur.position, cur.band);
         }
         if (captionEl) captionEl.textContent = cur.caption || (g === 0 ? "The original has no description: nothing has read it yet." : "No description was recorded for this generation.");

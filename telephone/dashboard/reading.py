@@ -6,7 +6,8 @@ can read. Everything here is a pure function of ledger rows, so it is tested wit
 The drift scale. CLIP distance to the original is 0 for an identical picture. Two different
 photographs from this project are about 0.43 apart (README, glossary). The dashboard draws drift
 as a position between those two anchors. The four named bands are a rule of thumb for reading
-that position, chosen by hand; they are not measured thresholds and the interface says so.
+that position, chosen by hand. They are not measured thresholds, they describe the model's
+score and not what a person sees, and the interface says so next to the wedge.
 """
 
 from __future__ import annotations
@@ -21,19 +22,30 @@ DIFFERENT_PHOTO_CLIP = 0.43
 
 # (key, upper bound as a fraction of the way to a different photograph, label, meaning)
 BANDS: list[tuple[str, float, str, str]] = [
-    ("same", 0.10, "Same picture", "A machine can barely tell it from the original."),
-    ("worn", 0.40, "Same picture, worn", "Clearly the same photograph, with visible damage."),
+    (
+        "same",
+        0.10,
+        "Almost identical",
+        "The comparison model can barely tell it from the original.",
+    ),
+    (
+        "worn",
+        0.40,
+        "Close to the original",
+        "The comparison model scores it as close to the original. Compare the two pictures to "
+        "see what the change looks like.",
+    ),
     (
         "drifting",
         0.75,
-        "Drifting",
-        "Related to the original, but no longer the same picture.",
+        "Far from the original",
+        "The comparison model scores it as far from the original.",
     ),
     (
         "different",
         float("inf"),
-        "A different picture",
-        "About as far from the original as an unrelated photograph.",
+        "As far as a different photograph",
+        "The comparison model scores it about as far from the original as an unrelated photograph.",
     ),
 ]
 
@@ -239,10 +251,11 @@ def chain_reading(
     noun = {"compression": "upload", "ai": "round", "physical": "re-photographing"}[kind]
     plural = noun + ("s" if trips != 1 else "")
     where = {
-        "same": "this is still the same picture",
-        "worn": "this is the same picture with visible damage",
-        "drifting": "the picture has drifted away from the original",
-        "different": "this is a different picture",
+        "same": "the comparison model scores this as almost identical to the original",
+        "worn": "the comparison model scores this as close to the original",
+        "drifting": "the comparison model scores this as far from the original",
+        "different": "the comparison model scores this as far from the original as a different "
+        "photograph is",
         "unknown": "the picture was not compared with the original",
     }[band["key"]]
     if trips == 0:

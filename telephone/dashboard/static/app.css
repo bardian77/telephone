@@ -38,8 +38,8 @@
   --radius: 6px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
-  --fs-micro: 0.75rem;
-  --fs-small: 0.8125rem;
+  --fs-micro: 0.8125rem;
+  --fs-small: 0.875rem;
   --fs-body: 0.9375rem;
   --fs-lead: 1.0625rem;
   --fs-h3: 0.9375rem;
@@ -394,7 +394,7 @@ main { padding: 44px 48px 96px; min-width: 0; }
 
 /* -- one chain --------------------------------------------------------------------------- */
 
-.compare-band { background: var(--viewing); margin: 0 -48px; padding: 24px 48px; display: grid; gap: 16px; }
+.compare-band { background: var(--viewing); padding: 20px; display: grid; gap: 16px; }
 .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; max-width: 1080px; }
 .compare figure { display: grid; gap: 8px; align-content: start; }
 .compare img { width: 100%; max-height: 62vh; object-fit: contain; background: transparent; }
@@ -446,14 +446,14 @@ details.more .table-wrap { border-left: 0; border-right: 0; border-radius: 0; ma
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .grid-line { stroke: var(--line); stroke-width: 1; }
 .chart .axis { stroke: var(--line-strong); stroke-width: 1; }
-.chart .tick { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
-.chart .axis-label { fill: var(--muted); font-size: 11px; }
+.chart .tick { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chart .axis-label { fill: var(--muted); font-size: 12px; }
 .chart .line { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart .line-many { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-opacity: 0.42; stroke-linejoin: round; }
 .chart .line-many.is-hot { stroke-opacity: 1; stroke-width: 2.5; }
 .chart .dot { fill: var(--ink); stroke: var(--surface); stroke-width: 2; }
 .chart .cross { stroke: var(--line-strong); stroke-width: 1; }
-.chart .end-label { fill: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+.chart .end-label { fill: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
 .chart .hit { fill: transparent; cursor: crosshair; }
 .tip { position: absolute; z-index: 5; pointer-events: none; background: var(--ink); color: var(--ground); font-size: var(--fs-micro); line-height: 1.4; padding: 6px 8px; border-radius: 4px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); font-variant-numeric: tabular-nums; }
 .tip[hidden] { display: none; }
@@ -505,7 +505,7 @@ details.more .table-wrap { border-left: 0; border-right: 0; border-radius: 0; ma
   .rail-foot .meter { display: none; }
   .rail-run { margin: 0; padding: 6px 10px; }
   main { padding: 28px 18px 72px; }
-  .compare-band { margin: 0 -18px; padding: 16px 18px; }
+  .compare-band { margin: 0 -18px; padding: 14px 18px; }
   .photos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 14px; }
   .stations { grid-template-columns: minmax(0, 1fr); }
   .stations li { border-left: 0; border-top: 1px solid var(--line); }
@@ -520,7 +520,7 @@ details.more .table-wrap { border-left: 0; border-right: 0; border-radius: 0; ma
 
 @media (max-width: 560px) {
   h1 { font-size: 1.5rem; }
-  .wedge-scale { font-size: 0.625rem; }
+  .wedge-scale { font-size: 0.6875rem; }
   .wedge-scale span { padding-left: 3px; padding-right: 0; }
   .photos { grid-template-columns: minmax(0, 1fr); }
   .compare, .live-views { grid-template-columns: minmax(0, 1fr); }
@@ -541,3 +541,18 @@ details.more .table-wrap { border-left: 0; border-right: 0; border-radius: 0; ma
 /* station lists inside the guide keep their patch and drop the bullet */
 .guide .level ul.loop-detail li { padding-left: 0; }
 .guide .level ul.loop-detail li::before { content: none; }
+
+/* after the finish review */
+.stations li + li::before { content: ""; position: absolute; left: -7px; top: 26px; width: 12px; height: 12px; background: var(--surface); border-top: 1px solid var(--line-strong); border-right: 1px solid var(--line-strong); transform: rotate(45deg); }
+.stations li { position: relative; }
+.again { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 560; }
+.again .icon { width: 18px; height: 18px; }
+.legend { display: grid; gap: 8px; max-width: 620px; }
+.multiple-top { font-size: var(--fs-micro); color: var(--ink-2); }
+.scroll-cue { display: none; }
+.figs img { width: 100%; }
+@media (max-width: 900px) {
+  .stations li + li::before { left: 26px; top: -7px; transform: rotate(135deg); }
+  .scroll-cue { display: block; }
+}
+#live:empty { display: none; }

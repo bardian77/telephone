@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..render import image_of, variant_of
-from .reading import photo_label, variant_label
+from .reading import drift_position, photo_label, variant_label
 from .service import RunPlan, RunRefused, chain_key
 
 FINISHED = ("done", "failed", "stopped")
@@ -206,7 +206,12 @@ class JobManager:
                 if not failed:
                     last = recs[-1]
                     d = last.metrics.clip_dist_to_g0
-                    tail = f", drift {d:.3f}" if d is not None and last.generation else ""
+                    pos = drift_position(d) if last.generation else None
+                    tail = (
+                        f", {round(pos * 100)}% of the way to a different photograph"
+                        if pos is not None
+                        else ""
+                    )
                     self._say(job, f"{label}: {last.generation} generations done{tail}")
             with self._lock:
                 job.status = "done"

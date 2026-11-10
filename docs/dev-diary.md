@@ -146,7 +146,7 @@ answering questions: anyone who clones the repository should be able to use it, 
 the Python tool with no Node and no build step, and it looks like a photographer's calibration
 target (neutral grey ground, drift drawn as a marker on a grey step wedge).
 
-What happened. The backend was written test first: 17 new tests, 72 in total, all on mock
+What happened. The backend was written test first: 19 new tests, 74 in total, all on mock
 providers or compression only. Experiment 1 was then run again from the dashboard on all six
 photographs: 24 chains, 504 pictures, 7 minutes 20 seconds, nothing spent. All 504 output hashes
 match the saved snapshot in `data/results/exp01_compression.jsonl`, so the run is reproducible
@@ -180,6 +180,13 @@ What failed or changed on the way.
 - Each new generation used to fade in during a run. With a picture arriving about once a second
   that became a pulse, and the animation review removed it.
 - Hidden elements were still visible because a layout rule overrode the `hidden` attribute.
+- A separate reviewer, given only the screenshots and the brief, sent the first version back for
+  fixes. Its main point was that my band names overclaimed: a simulated picture that looked
+  nothing like its original was labelled "Same picture, worn. Clearly the same photograph", from
+  a CLIP score alone. The bands now say what the comparison model scored (same, close, far,
+  different) and the page says next to the wedge that they are a rule of thumb. It also caught
+  that the run list showed only one version of each loop, that the Start page used the word
+  chain before explaining it, and that the smallest text on the page was the explanations.
 
 What's next. The dashboard runs the AI experiments only as simulations until there is a key, so
 step 3 (a Gemini key and a small real loop) is unchanged. A single custom chain (one photograph,

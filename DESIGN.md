@@ -135,7 +135,7 @@ Controls and sheets use a 6px radius. Tags are pills.
 ## Components
 
 - Step wedge: twenty grey steps from near white to near black, a marker with a light ring so it
-  reads on every step, and four named bands underneath (same, worn, drifting, different). The
+  reads on every step, and four named bands underneath (same, close, far, different). The
   left end is the original and the right end is a different photograph. The compact form drops
   the labels and is always followed by the position in words.
 - Patch: a 12px square of a station colour, always next to the station's name.

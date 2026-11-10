@@ -308,3 +308,29 @@ def test_file_size_is_compared_with_the_photograph_not_the_lossless_copy():
     tiny = [_rec(0, 0.0, 1.0, size=2_000_000)] + [_rec(g, 0.1, 0.8, size=9_000) for g in (1, 2)]
     size = next(f for f in chain_reading(tiny)["facts"] if f["label"] == "File size")
     assert size["meaning"].startswith("Less than 1%")
+
+
+def test_the_dashboard_works_behind_a_proxy_but_still_refuses_other_sites(client):
+    body = {"experiment": "exp02_caption_length", "mode": "simulation"}
+    # a preview pane or reverse proxy forwards the public host name
+    ok = client.post(
+        "/api/estimate",
+        json=body,
+        headers={"Origin": "https://preview.example", "X-Forwarded-Host": "preview.example"},
+    )
+    assert ok.status_code != 403
+    # a form on another site can only send a simple content type: that is not accepted as JSON
+    import json
+
+    plain = client.post(
+        "/api/estimate", content=json.dumps(body), headers={"Content-Type": "text/plain"}
+    )
+    assert plain.status_code == 422
+
+
+def test_band_wording_describes_the_models_score_not_what_a_person_sees():
+    from telephone.dashboard.reading import BANDS, chain_reading
+
+    assert all("comparison model" in meaning for _, _, _, meaning in BANDS)
+    recs = [_rec(0, 0.0, 1.0)] + [_rec(g, 0.17, 0.75) for g in (1, 2, 3)]
+    assert "comparison model scores" in chain_reading(recs)["headline"]

@@ -46,15 +46,13 @@ export function guideHtml(patch) {
   </header>
 
   <section class="level" id="idea">
-    <p class="level-tag">Level 1</p>
-    <h2>The idea</h2>
+    <h2>1. The idea</h2>
     <p>In the children’s game Telephone, a sentence is whispered from one person to the next and comes out the other end changed. This project plays that game with a photograph. The photo is handed to a system that handles pictures, the result is handed on again, and this repeats 12 or 20 times. After every hand-off the result is compared with the original.</p>
     <p>The question is what a photograph keeps and what it loses on the way. The photographs are of real places (the Bologna porticoes, the Barbican, the Dolomites), so the sharper form of the question is whether a place stays that place, or turns into a generic European street and a generic concrete building.</p>
   </section>
 
   <section class="level" id="loop">
-    <p class="level-tag">Level 2</p>
-    <h2>The loop</h2>
+    <h2>2. The loop</h2>
     <p>A photograph can pass through three kinds of station. Each has its own colour everywhere in this dashboard.</p>
     <ul class="loop-detail">${STATIONS.map(station).join("")}</ul>
     <p>A <b>chain</b> is one photograph plus a chosen list of stations, run round and round. Each trip round is one <b>generation</b>. Generation 0 is the original, generation 1 is what comes out after one trip.</p>
@@ -62,18 +60,16 @@ export function guideHtml(patch) {
   </section>
 
   <section class="level" id="measure">
-    <p class="level-tag">Level 3</p>
-    <h2>What is measured</h2>
+    <h2>3. What is measured</h2>
     <p>Two things are measured at every generation.</p>
     <p><b>Drift</b> is how far the picture has moved from the original, as one number. It comes from CLIP, an image-recognition model that turns a picture into a list of numbers describing what it shows. Two identical pictures are 0 apart. Two different photographs from this project are about 0.43 apart. The grey step wedge you see next to every result places the drift between those two anchors, so 0.09 reads as “21% of the way to a different photograph”.</p>
-    <p>The four names on the wedge (same, worn, drifting, different) are a rule of thumb chosen by hand to make the position easier to say out loud. They are not measured thresholds.</p>
+    <p>The four names on the wedge (same, close, far, different) are a rule of thumb chosen by hand to make the position easier to say out loud. They are not measured thresholds, and they describe the model’s score. Whether two pictures look alike to you is for your own eyes, which is why the original always sits next to the generation.</p>
     <p><b>Survival</b> is which facts about the picture are still true. A vision model fills in the same form for every generation: the objects in it, the number of people, any readable text, where it is, the lighting, the mood, the main colours, the camera angle, and whether it still looks like a photograph. Each answer is compared with the answer for the original. A fact that stops matching has died, and the generation where that happens is recorded. The survival form needs a vision model, so it needs an API key.</p>
     <p>Three supporting measures are recorded as well. SSIM compares pixel structure, where 1 means identical and one Instagram-style upload scores about 0.99. LPIPS is a learned measure of how different two pictures look to people, where 0 means identical. The colour distance compares the mix of colours and needs no model at all.</p>
   </section>
 
   <section class="level" id="read">
-    <p class="level-tag">Level 4</p>
-    <h2>Reading a result</h2>
+    <h2>4. Reading a result</h2>
     <p>A run produces one picture per generation and one row of measurements per picture. The Results pages turn those rows into three things: the pictures side by side with the original, the position on the step wedge, and a chart of drift over the generations.</p>
     <ul>
       <li>A line that jumps once and then runs flat means the loop found a resting point. Experiment 1 found this on all six photographs: under a fixed platform setting, all of the change happens on the first upload, because re-saving a JPEG at the same size and quality gives back almost the same JPEG.</li>
@@ -85,8 +81,7 @@ export function guideHtml(patch) {
   </section>
 
   <section class="level" id="built">
-    <p class="level-tag">Level 5</p>
-    <h2>How it is built</h2>
+    <h2>5. How it is built</h2>
     <ul>
       <li><b>The ledger.</b> Every generation is one row in a local database, <code>data/ledger.sqlite</code>, holding the models, settings, seed, measurements and cost. The figures, this dashboard and the public website all read from it.</li>
       <li><b>The cache.</b> A station’s output is stored under a key made from the input picture, the station’s settings, the model and the seed. Running the same step again costs nothing.</li>
