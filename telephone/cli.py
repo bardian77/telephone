@@ -534,5 +534,31 @@ def serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     )
 
 
+@app.command()
+def dashboard(
+    host: str = typer.Option("127.0.0.1", help="Address to listen on. Keep the default."),
+    port: int = typer.Option(8321, help="Port to listen on"),
+    no_open: bool = typer.Option(False, "--no-open", help="Do not open the browser"),
+):
+    """Open the dashboard in your browser: run experiments and read results without the terminal."""
+    try:
+        import uvicorn
+
+        from .dashboard.server import create_app
+    except ImportError as e:
+        _fail(
+            f"The dashboard needs FastAPI and uvicorn ({e.name} is missing). Install them with: "
+            'pip install -e ".[api]"'
+        )
+    url = f"http://{'localhost' if host in ('127.0.0.1', '0.0.0.0') else host}:{port}"
+    console.print(f"Telephone dashboard: [bold]{url}[/]   (Ctrl+C to stop)")
+    if not no_open:
+        import threading
+        import webbrowser
+
+        threading.Timer(1.0, webbrowser.open, args=(url,)).start()
+    uvicorn.run(create_app(), host=host, port=port, log_level="warning")
+
+
 if __name__ == "__main__":
     app()
