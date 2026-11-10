@@ -297,7 +297,8 @@ function liveHtml(job) {
       <figure><img id="live-g0" alt="" width="900" height="600"><figcaption>The original (generation 0)</figcaption></figure>
       <figure><img id="live-gn" alt="" width="900" height="600" hidden><div class="live-wait" id="live-wait">The first generation is on its way.</div><figcaption id="live-cap"></figcaption></figure>
     </div>
-    <ol class="log" id="live-log" role="log" aria-label="What has happened so far"></ol>
+    <div class="log" role="log" tabindex="0" aria-label="What has happened so far"><ol id="live-log"></ol></div>
+    <p class="vh" role="status" id="live-status"></p>
   </div>`;
 }
 
@@ -339,6 +340,7 @@ function liveUpdate(job) {
   const actions = document.getElementById("live-actions");
   const want = running ? "running" : "finished";
   if (actions.dataset.mode !== want) {
+    if (actions.dataset.mode === "running") document.getElementById("live-status").textContent = `${title}: ${job.name}. ${now.textContent}`;
     actions.dataset.mode = want;
     actions.innerHTML = running
       ? `<button class="btn btn-danger" data-action="stop-run">${icon("stop")}Stop the run</button>`
@@ -379,7 +381,7 @@ function liveUpdate(job) {
   if (stamp !== live.logged) {
     log.innerHTML = job.log.map((l) =>
       `<li data-tone="${esc(l.tone)}"><time>${duration(l.at)}</time><span>${esc(l.text)}</span></li>`).join("");
-    log.scrollTop = log.scrollHeight;
+    log.parentElement.scrollTop = log.parentElement.scrollHeight;
     live.logged = stamp;
   }
 }
@@ -586,7 +588,7 @@ async function resultsExperiment(ov, id) {
       ${c.image_last ? `<img src="${withW(c.image_last, 320)}" alt="${esc(c.photo_label.name)} after ${plural(c.last_generation, "generation")}, ${esc(c.variant_label)}" width="240" height="160" loading="lazy">` : ""}
       ${wedge(c.reading.position, c.reading.band, { compact: true })}
       <span class="cell-text">${esc(driftText(c.reading))}${c.repeat ? ` · repeat ${c.repeat + 1}` : ""}${c.errors ? " · stopped early" : ""}</span></a>`;
-  const grid = `<div class="grid-wrap"><table class="grid">
+  const grid = `<div class="grid-wrap" role="region" tabindex="0" aria-label="Where each photograph ended"><table class="grid">
     <caption class="vh">Where each photograph ended, for every version of the loop</caption>
     <thead><tr><th scope="col">Photograph</th>${d.variants.map((v) => `<th scope="col">${esc(v.label)}</th>`).join("")}</tr></thead>
     <tbody>${d.photos.map((p) => `<tr><th scope="row">${esc(p.name)}<small>${esc(p.type)}</small></th>${d.variants.map((v) =>
@@ -621,13 +623,13 @@ async function resultsExperiment(ov, id) {
         <h2>What this run shows</h2>
         ${d.findings.length ? `<ul class="findings">${d.findings.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>` : `<p class="note">Nothing has been through the loop yet.</p>`}
       </section>
+      ${versions}
       <section class="section">
         <h2>Where each photograph ended</h2>
         <p class="note">The marker shows how far the last generation is from its original. Choose a picture to see every generation.</p>
         ${grid}
       </section>
       ${multiples}
-      ${versions}
       ${figures}
       <section class="section">
         <h2>Keep or reuse these results</h2>
@@ -676,7 +678,7 @@ async function chainView(ov, key, query) {
   const labels = ov.field_labels;
   let sel = Math.min(last, Math.max(0, Number(query.get("g") ?? last) || 0));
 
-  const numbers = `<div class="table-wrap"><table class="table" id="numbers">
+  const numbers = `<div class="table-wrap" role="region" tabindex="0" aria-label="All the numbers"><table class="table" id="numbers">
     <caption class="vh">Every measurement for every generation</caption>
     <thead><tr><th scope="col" class="n">Generation</th><th scope="col" class="n">Drift</th><th scope="col" class="n">Of the way</th><th scope="col" class="n">Pixel structure (SSIM)</th><th scope="col" class="n">LPIPS</th><th scope="col" class="n">Colour distance</th><th scope="col" class="n">File size</th><th scope="col" class="n">Pixels</th>${anySurvival ? '<th scope="col" class="n">Facts kept</th>' : ""}</tr></thead>
     <tbody>${gens.map((g) => {
@@ -804,7 +806,9 @@ async function chainView(ov, key, query) {
         }
         if (captionEl) captionEl.textContent = cur.caption || (g === 0 ? "The original has no description: nothing has read it yet." : "No description was recorded for this generation.");
         if (survivalEl) {
-          survivalEl.innerHTML = cur.survival ? Object.entries(cur.survival.fields).map(([k, f]) => `
+          const order = Object.keys(labels);
+          const rows = cur.survival ? Object.entries(cur.survival.fields).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])) : [];
+          survivalEl.innerHTML = cur.survival ? rows.map(([k, f]) => `
             <tr><th scope="row">${esc(labels[k] ?? k)}</th><td>${esc(fmtValue(f.g0))}</td><td>${esc(fmtValue(f.now))}</td>
             <td>${f.alive ? `<span class="alive">${icon("check")}Kept</span>` : `<span class="dead">${icon("cross")}Lost</span>`}</td></tr>`).join("")
             : `<tr><td colspan="4">The form was not filled in for this generation.</td></tr>`;
@@ -869,7 +873,9 @@ function ticksFor(yMin, yMax, few) {
 // One or more lines over generations, drawn in ink. Identity is carried by the title, the
 // tooltip and the table next to it, so no series colour is needed.
 function drawChart(el, { series, yMax, yMin = 0, width, height, many = false, yLabel = "", tip, onPick }) {
-  const W = width, H = height;
+  const room = el.clientWidth - 32;
+  const W = room > 0 ? Math.max(260, Math.min(width, room)) : width;
+  const H = Math.round(Math.max(170, Math.min(height, W * 0.62)));
   const m = { l: 44, r: many ? 12 : 52, t: 10, b: 30 };
   const xs = series.flatMap((s) => s.points.map((p) => p.x));
   const x1 = Math.max(1, ...xs);

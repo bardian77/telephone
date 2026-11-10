@@ -135,3 +135,53 @@ replaced photograph under the same filename is resumed from the old generation 0
 Instagram; the lifetime cap, the physical station error and the API's private-stem refusal are
 not exercised through the CLI or API tests; `log/build_deck.py` still assumes the repo root as
 the working directory; `save-results` includes private photos' rows in the committed file.
+
+## 2026-11-10: a dashboard, so the project can be run and read without the terminal
+
+What we tried. I had run experiment 1 but could not say what its output meant, and every step
+needed a terminal command. So this session built a dashboard: `telephone dashboard` opens a page
+in the browser that lists the experiments in plain words, starts a run with the cost stated
+first, shows each generation as it arrives, and explains each result. I chose three things by
+answering questions: anyone who clones the repository should be able to use it, it is built into
+the Python tool with no Node and no build step, and it looks like a photographer's calibration
+target (neutral grey ground, drift drawn as a marker on a grey step wedge).
+
+What happened. The backend was written test first: 17 new tests, 72 in total, all on mock
+providers or compression only. Experiment 1 was then run again from the dashboard on all six
+photographs: 24 chains, 504 pictures, 7 minutes 20 seconds, nothing spent. All 504 output hashes
+match the saved snapshot in `data/results/exp01_compression.jsonl`, so the run is reproducible
+byte for byte. A practice run on the five synthetic images took 21 seconds. An automated
+accessibility scan (axe) reports no violations on nine pages in light and dark.
+
+What the dashboard showed that the 10 November summary got slightly wrong. The summary says the
+WhatsApp and Instagram presets move CLIP distance by 0.01 to 0.03, and that every chain does all
+of its changing on the first upload. Per preset the final CLIP distances are: Instagram 0.009 to
+0.017, WhatsApp 0.008 to 0.039, screenshot then WhatsApp 0.022 to 0.093, harsh 0.057 to 0.118.
+And 22 of the 24 chains settle on the first upload. The other two are the Dolomites landscape
+and the self-portrait under screenshot then WhatsApp, which keep moving for two or three uploads
+(0.020 to 0.032, and 0.078 to 0.093) before they stop. The self-portrait under that preset drifts
+as far as some harsh chains while its SSIM stays at 0.991. The summary file has not been edited.
+
+What failed or changed on the way.
+
+- The Impeccable and Superpowers plugins are enabled in the project settings but were not
+  installed in the cloud session. Impeccable's playbooks were read from its GitHub repository
+  instead. Its launcher is a downloaded program, and the session's safety layer refused to run
+  it, so there was no dice roll of visual directions, no design detector, and `DESIGN.md` was
+  written by hand. The direction was chosen from three options through the question tool.
+  Test-driven development was followed by hand.
+- The first file-size sentence compared the last generation with generation 0, which is stored
+  as a lossless PNG copy and is several times larger than the photograph's own JPEG. It read
+  "0% of the original file". It now compares with the photograph's own file.
+- A thumbnail sometimes arrived broken, because one request could read a preview file that
+  another request was still writing. Previews are now written whole and moved into place.
+- A fourth station colour (violet, for the camera station) failed the colour-vision check next
+  to the Platform blue, so the camera station is drawn in neutral ink.
+- Each new generation used to fade in during a run. With a picture arriving about once a second
+  that became a pulse, and the animation review removed it.
+- Hidden elements were still visible because a layout rule overrode the `hidden` attribute.
+
+What's next. The dashboard runs the AI experiments only as simulations until there is a key, so
+step 3 (a Gemini key and a small real loop) is unchanged. A single custom chain (one photograph,
+any list of stations) cannot be started from the dashboard yet; `telephone run-chain` still does
+that. The public website has not been touched.

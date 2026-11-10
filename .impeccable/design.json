@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-10T00:00:00.000Z",
+  "title": "Design System: Telephone dashboard",
+  "note": "Written by hand from telephone/dashboard/static/app.css. Impeccable's documenter did not run in the session that built the dashboard.",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Grey card",
+        "canonical": "#e6e6e6",
+        "description": "Page ground. No colour cast, so photographs are judged fairly.",
+        "dark": "#1c1c1c"
+      },
+      "viewing": {
+        "role": "neutral",
+        "displayName": "Viewing grey",
+        "canonical": "#d6d6d6",
+        "description": "Only behind photographs.",
+        "dark": "#121212"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Sheet",
+        "canonical": "#fbfbfb",
+        "description": "Forms, tables and charts.",
+        "dark": "#272727"
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#111111",
+        "description": "Text, the primary button, chart lines.",
+        "dark": "#f0f0f0"
+      },
+      "rail": {
+        "role": "neutral",
+        "displayName": "Black frame",
+        "canonical": "#161616",
+        "description": "Navigation rail.",
+        "dark": "#0c0c0c"
+      },
+      "station-platform": {
+        "role": "secondary",
+        "displayName": "Platform patch",
+        "canonical": "#2a78d6",
+        "description": "The Platform station and nothing else.",
+        "dark": "#3987e5"
+      },
+      "station-reader": {
+        "role": "secondary",
+        "displayName": "Reader patch",
+        "canonical": "#eb6834",
+        "description": "The Reader station and nothing else.",
+        "dark": "#d95926"
+      },
+      "station-painter": {
+        "role": "secondary",
+        "displayName": "Painter patch",
+        "canonical": "#1baf7a",
+        "description": "The Painter station and nothing else.",
+        "dark": "#199e70"
+      }
+    },
+    "motion": {
+      "easeOut": "cubic-bezier(0.23, 1, 0.32, 1)",
+      "press": "transform 140ms ease-out to scale(0.97)",
+      "progress": "transform 300ms linear on scaleX",
+      "toast": "opacity and transform 200ms in, 150ms out",
+      "reducedMotion": "movement removed; state changes kept"
+    },
+    "focus": {
+      "ring": "2px solid ink, 2px offset"
+    },
+    "shadows": {
+      "toast": "0 6px 18px rgb(0 0 0 / 0.22)"
+    }
+  }
+}

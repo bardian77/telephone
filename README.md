@@ -76,6 +76,24 @@ cd web && npm ci && npm run dev                 # site on http://localhost:5173 
 
 Commands work from any folder: paths anchor on the project root (the folder with `pyproject.toml` and `experiments/`, or `TELEPHONE_ROOT`).
 
+## The dashboard
+
+If you would rather not use the terminal for more than one command, start the dashboard:
+
+```bash
+telephone dashboard                             # opens http://localhost:8321 in your browser
+```
+
+It runs on your own machine and needs nothing beyond the install above (no Node, no build step).
+
+- **Start** explains the loop and shows the photographs with their furthest drift so far.
+- **Run** lists the experiments in plain words and says which can run now. A run shows its estimated cost before it starts, and a paid one needs a tick to confirm. You watch each generation arrive.
+- **Results** puts every generation next to its original, places its drift on a grey step wedge that runs from the original to a different photograph, and lists which facts on the survival form were kept or lost.
+- **How it works** explains the project in five levels, from the idea to the engineering.
+- **Setup** shows which keys are set, what is installed and how much of the budget is left.
+
+The dashboard never shows or accepts API keys, never lists photographs from `data/originals/private/`, and labels every run on mock providers as a simulation. It is a separate thing from the public site in `web/`, which stays static. The code is in `telephone/dashboard/`.
+
 Everything also runs with no keys on the offline stand-ins, which is what the tests and CI do:
 
 ```bash
@@ -122,6 +140,7 @@ Keys live in `.env` at the project root or in the environment, never in the repo
 
 ```
 telephone/            pipeline package: config, models, ledger, cache, cost, stations/, providers/, metrics/, chain, experiments, render, export, cli
+telephone/dashboard/  the local dashboard: reading.py (numbers into plain words), service.py, jobs.py, server.py and the static page
 experiments/          YAML definitions of the six experiments plus the mock smoke test
 api/                  FastAPI service (static export + optional capped live runs)
 web/                  Vite + React + TypeScript site; web/public/data/sample is a committed export of the smoke test

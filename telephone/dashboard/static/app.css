@@ -361,7 +361,8 @@ main { padding: 44px 48px 96px; min-width: 0; }
 .live-views img { width: 100%; max-height: 46vh; object-fit: contain; }
 .live-wait { aspect-ratio: 3 / 2; max-height: 46vh; width: 100%; display: grid; place-items: center; text-align: center; padding: 24px; border: 1px dashed var(--line-strong); color: var(--ink-2); font-size: var(--fs-small); }
 .live-views figcaption, .compare figcaption { font-size: var(--fs-small); color: var(--ink-2); }
-.log { max-height: 190px; overflow: auto; display: grid; gap: 2px; font-size: var(--fs-small); color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 12px; }
+.log { max-height: 190px; overflow: auto; font-size: var(--fs-small); color: var(--ink-2); border-top: 1px solid var(--line); }
+.log ol { display: grid; gap: 2px; padding: 12px 0 2px; }
 .log li { display: grid; grid-template-columns: 4.5em minmax(0, 1fr); gap: 8px; }
 .log time { color: var(--muted); font-variant-numeric: tabular-nums; }
 .log [data-tone="error"] { color: var(--critical-ink); }

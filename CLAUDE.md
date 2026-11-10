@@ -1,6 +1,8 @@
 Every session: read `docs/BRIEF.md` first. It is the plain-language brief, plan and list of decisions.
 Before running experiments, `telephone doctor` shows which keys are set, how much has been spent, and what can run now (`--mock` and `--no-extract` need no key).
 
+`telephone dashboard` opens the local dashboard (run experiments, read results) on port 8321.
+
 # Telephone
 
 Art-and-code project: a photograph is passed repeatedly through recompression, captioning and
@@ -27,6 +29,11 @@ Say which skill you are using before you start a task.
 
 - Visual design of `web/` is owned by Impeccable only. Its design brief (created by
   `/impeccable init`) is the source of truth. Do not apply other skills' aesthetics.
+- The dashboard in `telephone/dashboard/static/` follows the same skill routing as `web/`.
+  `PRODUCT.md` holds the product facts, `DESIGN.md` the dashboard's look (Calibration target),
+  and `.impeccable/surfaces/telephone-dashboard.md` its direction contract. It is plain HTML,
+  CSS and JavaScript modules with no build step: do not add a framework or a bundler to it.
+  Sentences about a result are written in `telephone/dashboard/reading.py`, with tests.
 - Motion follows `emil-design-eng`. Respect `prefers-reduced-motion`. No scroll-jacking,
   no parallax on photographs.
 - Before calling web work done, review changed files with `web-design-guidelines`.

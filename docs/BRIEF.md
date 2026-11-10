@@ -91,7 +91,7 @@ full-quality originals from my phone later; if I do, the experiments are re-run.
 Photos that must stay private go in `data/originals/private/`. That folder is never committed
 and never exported to the website.
 
-## Where things stand (9 November 2026)
+## Where things stand (10 November 2026)
 
 A previous session built a working first version: the Python pipeline, six experiment definitions,
 figures, a website and a deck builder. It works, but it is too technical to explain, and the
@@ -103,6 +103,13 @@ Steps 0, 1 and 2 were done on 9 November (details in `docs/dev-diary.md`). Exper
 six photographs: under a fixed platform preset all of the change happens on the first upload and
 the loop then sits still, which is itself a finding. The six audited bugs are fixed with tests,
 `telephone doctor` reports what can run, and every command works from any folder.
+
+On 10 November a dashboard was added, so the project can be run and read without the terminal:
+`telephone dashboard` opens it in the browser. It lists the experiments in plain words, runs them
+with the cost stated first, shows each generation as it arrives, and explains every result
+(pictures next to the original, drift on a step wedge, the survival form). It is a local tool in
+`telephone/dashboard/` and is separate from the public website, which is still to be simplified.
+Its design facts are in `PRODUCT.md` and `DESIGN.md`.
 
 There are no API keys yet. That decides the order of work:
 
