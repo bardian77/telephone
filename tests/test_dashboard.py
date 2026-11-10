@@ -133,7 +133,7 @@ def test_photo_and_variant_names_are_made_readable():
         "type": "street",
     }
     assert photo_label("IMG1234")["name"] == "IMG1234"
-    assert variant_label("screenshot_whatsapp") == "Screenshot whatsapp"
+    assert variant_label("screenshot_whatsapp") == "Screenshot WhatsApp"
 
 
 # -- the API --------------------------------------------------------------------------------
@@ -296,3 +296,15 @@ def test_cli_has_a_dashboard_command():
 
     out = CliRunner().invoke(app, ["dashboard", "--help"])
     assert out.exit_code == 0 and "browser" in out.output.lower()
+
+
+def test_file_size_is_compared_with_the_photograph_not_the_lossless_copy():
+    from telephone.dashboard.reading import chain_reading
+
+    # generation 0 is stored as a large PNG copy; the photograph itself was a 200 kB JPEG
+    recs = [_rec(0, 0.0, 1.0, size=2_000_000)] + [_rec(g, 0.02, 0.97, size=50_000) for g in (1, 2)]
+    size = next(f for f in chain_reading(recs, 200_000)["facts"] if f["label"] == "File size")
+    assert size["value"] == "200 kB to 50 kB" and "25%" in size["meaning"]
+    tiny = [_rec(0, 0.0, 1.0, size=2_000_000)] + [_rec(g, 0.1, 0.8, size=9_000) for g in (1, 2)]
+    size = next(f for f in chain_reading(tiny)["facts"] if f["label"] == "File size")
+    assert size["meaning"].startswith("Less than 1%")

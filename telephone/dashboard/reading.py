@@ -120,8 +120,12 @@ def photo_label(stem: str) -> dict[str, str]:
     return {"name": name[:1].upper() + name[1:], "type": kind}
 
 
+PROPER_NOUNS = {"whatsapp": "WhatsApp", "instagram": "Instagram", "facebook": "Facebook"}
+
+
 def variant_label(name: str) -> str:
-    text = name.replace("_", " ").strip()
+    words = [PROPER_NOUNS.get(w, w) for w in name.replace("_", " ").split()]
+    text = " ".join(words)
     return text[:1].upper() + text[1:]
 
 
@@ -203,8 +207,20 @@ def survival_summary(recs: list[GenerationRecord]) -> dict[str, Any] | None:
     }
 
 
-def chain_reading(recs: list[GenerationRecord]) -> dict[str, Any]:
-    """What one chain shows, as a headline, a few facts and the position on the drift scale."""
+def _share(part: float, whole: float) -> str:
+    pct = 100 * part / whole
+    return "Less than 1%" if 0 < pct < 1 else f"{round(pct)}%"
+
+
+def chain_reading(
+    recs: list[GenerationRecord], original_bytes: int | None = None
+) -> dict[str, Any]:
+    """What one chain shows, as a headline, a few facts and the position on the drift scale.
+
+    `original_bytes` is the size of the photograph's own file. Generation 0 is stored as a
+    lossless PNG copy, which is much larger than the JPEG it came from, so file sizes are
+    compared with the real file whenever it is known.
+    """
     recs = sorted(recs, key=lambda r: r.generation)
     ok = [r for r in recs if r.error is None]
     first, last = ok[0], ok[-1]
@@ -264,13 +280,13 @@ def chain_reading(recs: list[GenerationRecord]) -> dict[str, Any]:
             else "For a redrawn picture this only confirms that the pixels are different."
         )
         facts.append({"label": "Pixel structure", "value": f"{ssim:.3f}", "meaning": meaning})
-    b0, b1 = first.metrics.file_bytes, last.metrics.file_bytes
+    b0, b1 = original_bytes or first.metrics.file_bytes, last.metrics.file_bytes
     if b0 and b1 and trips:
         facts.append(
             {
                 "label": "File size",
                 "value": f"{_kb(b0)} to {_kb(b1)}",
-                "meaning": f"{round(100 * b1 / b0)}% of the original file.",
+                "meaning": f"{_share(b1, b0)} of the original file.",
             }
         )
     w0, w1 = first.metrics.width, last.metrics.width

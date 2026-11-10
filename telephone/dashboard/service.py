@@ -7,6 +7,8 @@ job manager (jobs.py), so they can be tested and reused without HTTP.
 from __future__ import annotations
 
 import io
+import os
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -162,7 +164,10 @@ def resized_jpeg(src: Path, width: int | None, cache_key: str) -> bytes:
         img.save(buf, format="JPEG", quality=92, subsampling=0)
     data = buf.getvalue()
     cache.parent.mkdir(parents=True, exist_ok=True)
-    cache.write_bytes(data)
+    # written whole, then moved into place: another request must never read half a file
+    tmp = cache.with_name(f"{cache.name}.{os.getpid()}.{threading.get_ident()}.tmp")
+    tmp.write_bytes(data)
+    tmp.replace(cache)
     return data
 
 
@@ -388,6 +393,17 @@ def _image_url(key: str, rec: GenerationRecord) -> str | None:
     return f"/api/image/chain/{key}/{rec.generation}?v={rec.output_sha[:10]}"
 
 
+def original_bytes(stem: str) -> int | None:
+    """Size of the photograph's own file, for originals and for the synthetic fixtures."""
+    s = get_settings()
+    for folder in (s.originals_dir, s.fixtures_dir):
+        for ext in IMAGE_EXTS:
+            p = folder / f"{stem}{ext}"
+            if p.is_file():
+                return p.stat().st_size
+    return None
+
+
 def chain_summary(recs: list[GenerationRecord]) -> dict[str, Any]:
     recs = sorted(recs, key=lambda r: r.generation)
     first = recs[0]
@@ -414,7 +430,8 @@ def chain_summary(recs: list[GenerationRecord]) -> dict[str, Any]:
         "image_last": _image_url(key, last),
         "drift": [r.metrics.clip_dist_to_g0 for r in ok],
         "cost_usd": round(sum(r.cost_usd for r in recs), 4),
-        "reading": chain_reading(recs),
+        "original_bytes": original_bytes(stem),
+        "reading": chain_reading(recs, original_bytes(stem)),
     }
 
 
@@ -510,6 +527,7 @@ def experiment_results(experiment_id: str) -> dict[str, Any]:
                 "stations": [describe_station(st) for st in cfg["stations"]] if cfg else [],
             }
         )
+    chains.sort(key=lambda c: (names.index(c["variant"]), c["photo"], c["repeat"]))
     photo_stems = sorted({c["photo"] for c in chains})
     figures_dir = get_settings().figures_dir / experiment_id
     figures = (
