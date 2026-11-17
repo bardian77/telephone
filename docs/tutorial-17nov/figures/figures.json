@@ -91,5 +91,12 @@
       "data/results/exp07_screenshot_loop_detail.jsonl"
     ],
     "alt": "A grid of close-ups of Reflection (460 px crop): one row per journey, one column per pass."
+  },
+  "six_photographs.jpg": {
+    "shows": "The six starting photographs, all taken by the author, shown small.",
+    "sources": [
+      "data/originals/"
+    ],
+    "alt": "Six photographs in a row: a street of porticoes in Bologna at sunset, the lake at the Barbican, a low view of the Barbican with a small sign, golden larches in the Dolomites, the author standing by a car in the Dolomites, and a column reflected in rippled water."
   }
 }

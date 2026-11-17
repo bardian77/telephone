@@ -10,6 +10,7 @@ Writes to docs/tutorial-17nov/figures/:
   place_over_passes.png      the true place's probability over the passes
   exp01_clip_before_after.png  experiment 1's CLIP distances before and after the correction
   closeup_<stem>.jpg         the same spot of each photograph, at every journey and pass
+  six_photographs.jpg        the six starting photographs, named
   figures.json               for each figure: what it shows, where the numbers come from, alt text
 
 and prints the table the written summary quotes. Run from anywhere:
@@ -129,6 +130,9 @@ def save(fig, name: str, what: str, sources: list[str], alt: str, kind: str = "p
         provenance={"raw_data": ", ".join(sources), "transformations": ["none: values as saved"]},
     )
     plt.close(fig)
+    long_name = OUT / f"{name}.jpeg"  # the exporter writes JPEGs with the long extension
+    if kind == "jpg" and long_name.exists():
+        long_name.replace(OUT / f"{name}.jpg")
     DESCRIPTIONS[f"{name}.{kind}"] = {"shows": what, "sources": sources, "alt": alt}
     print(f"wrote {OUT / name}.{kind}")
 
@@ -406,7 +410,8 @@ def fig_place_passes(place) -> None:
         ax.grid(axis="y", color="#dddddd", linewidth=0.8)
     handles, labels = legend_handles(journeys)
     fig.legend(handles, labels, loc="outside lower center", ncols=3, frameon=False)
-    fig.supxlabel("Pass")
+    for ax in axes[-1]:
+        ax.set_xlabel("Pass")
     fig.supylabel("Probability of the true place among 12 names")
     save(
         fig,
@@ -567,6 +572,32 @@ def closeups(ledger, detail) -> None:
         )
 
 
+def six_photographs() -> None:
+    """The six starting photographs side by side, named, for the log."""
+    files = {s: ROOT / "data" / "originals" / f"{s}.jpg" for s in PHOTOS}
+    if not all(f.is_file() for f in files.values()):
+        print("the six originals are not all here; skipping six_photographs")
+        return
+    fig, axes = plt.subplots(1, 6, figsize=(15, 4.2), layout="constrained")
+    for ax, (stem, (name, _)) in zip(axes, PHOTOS.items(), strict=True):
+        img = Image.open(files[stem]).convert("RGB")
+        img.thumbnail((700, 700))  # small copies for the slide; nothing is measured from them
+        ax.imshow(np.asarray(img))
+        ax.set_title(name.replace(", ", ",\n"), fontsize=12)
+        ax.axis("off")
+    save(
+        fig,
+        "six_photographs",
+        "The six starting photographs, all taken by the author, shown small.",
+        ["data/originals/"],
+        "Six photographs in a row: a street of porticoes in Bologna at sunset, the lake at the "
+        "Barbican, a low view of the Barbican with a small sign, golden larches in the "
+        "Dolomites, the author standing by a car in the Dolomites, and a column reflected in "
+        "rippled water.",
+        kind="jpg",
+    )
+
+
 def fmt(v, n: int = 4) -> str:
     return "-" if v is None else f"{v:.{n}f}"
 
@@ -615,6 +646,7 @@ def main() -> None:
         fig_place_passes(place)
         fig_exp01_clip()
         closeups(ledger, detail)
+        six_photographs()
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "figures.json").write_text(
         json.dumps(DESCRIPTIONS, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"

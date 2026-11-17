@@ -67,9 +67,11 @@ which a paid AI service needs before it will run.
 
 1. Does plain re-uploading keep damaging a photograph, or does it settle? Re-upload, no key.
    Answered by experiment 1: it settles after the first upload.
-2. What makes damage keep adding up? Screenshot and forward, no key.
+2. What makes damage keep adding up? Screenshot and forward, no key. Answered on 17 November:
+   not the screenshot itself and not a change of phone. A crop that is slightly off each time.
 3. Does the place survive: does Bologna stay Bologna or become "a European street"? The place
-   line-up now, with no key. Describe and redraw when there is a key.
+   line-up now, with no key: a first reading on 17 November. Describe and redraw when there is a
+   key.
 4. What does a machine put in place of what it drops? That means what it adds that was never
    there. Describe and redraw, needs a key. The module's topic of algorithmic bias (an automated
    system treating some people or things as the norm) comes in here. On the self-portrait chain,
@@ -140,7 +142,8 @@ had already lost theirs. If they replace these six, the experiments are re-run.
 
 Two more things I still need to do. `data/places.yaml` records where each photograph was taken,
 copied from this table, and I need to confirm those labels. I also need to write my own
-one-sentence caption for each photograph (`docs/human-telephone.md` will say where).
+one-sentence caption for each photograph, in `data/human/captions.yaml`
+(`docs/human-telephone.md` says how).
 
 Photos that must stay private go in `data/originals/private/`. That folder is never committed
 and never exported to the website.
@@ -148,42 +151,61 @@ and never exported to the website.
 ## Where things stand (17 November 2026)
 
 Steps 0 to 2 were done on 9 November: this brief, the re-upload experiment on all six
-photographs, and the six audited bugs fixed with tests. Built on 17 November, with no key: the
-Screenshot station, the screenshot-and-forward experiment, the place line-up and
-`telephone detail-test`. The full runs happen after the code is reviewed.
+photographs, and the six audited bugs fixed with tests. On 17 November, with no key: the
+Screenshot station, the screenshot-and-forward experiment, the place line-up,
+`telephone detail-test`, and the website rebuilt as one page. Both experiments have been run on
+all six photographs and saved. The numbers are in `docs/dev-diary.md` and, to say out loud, in
+`docs/tutorial-17nov/summary.md`.
 
 Found on 17 November:
 
-- The exact-crop screenshot chain was expected to keep decaying. In trial runs it settled too, a
-  little later than the re-upload chain. The working idea now: a loop only keeps decaying when
-  the operation varies from pass to pass (a different crop, a different phone). The "different
-  phone every pass" variant was added to test that without changing the framing.
-- The loose-crop chain does keep decaying, but its distance-to-original numbers only measured the
-  cropping. Also, the project's SSIM measure (a score of how alike two pictures are in structure)
-  shrinks pictures to 512 pixels wide before comparing, so it cannot see the loss of detail finer
-  than that. A new comparison, `telephone detail-test`, compares each pass with the same region
-  of the original at the picture's own size, so cropping and decay are told apart.
-- The instrument had a fault. CLIP is a model that runs locally, with no key, and scores how well
-  a picture matches a text or another picture. It had been built with the wrong activation
-  function for its weights: a step inside the network did not match the one the model was trained
-  with. The library only warned. Every CLIP number so far, including experiment 1's, came from
-  that mis-built network. It is fixed, a test now fails if it happens again, and experiment 1 is
-  being re-measured. The CLIP distances in `docs/tutorial-10nov/summary.md` will change. SSIM,
-  LPIPS (a learned score of how different two pictures look) and file sizes are not affected.
-- The place line-up was calibrated on the six originals, meaning it was tried on them before any
-  chain. One prediction failed. The abstract reflection crop was put in as a control, a picture
-  that should not be placeable, and on the corrected model its true place came first anyway. This
-  is kept as a failed prediction. The first calibration, scored on the mis-built model, is kept
-  in `docs/evidence/` as a record.
+- A step that is repeated exactly settles. Uploading again stops changing the picture at pass 4
+  or 5. Screenshotting on one phone stops at pass 14 to 18. I had expected the screenshot loop
+  to keep decaying.
+- How much is lost before it settles depends on how the phone redraws the picture: 75 to 86% of
+  the fine detail is left with one way of resampling (working out the new pixels when a picture
+  changes size) and 39 to 53% with the other.
+- A different phone every pass keeps changing the picture but levels off: 71 to 86% of the fine
+  detail is left after 40 passes. A careless crop every pass keeps wearing it down: 16 to 30% is
+  left, and 53 to 73% of the frame.
+- The place. On the originals the true place comes first in its line-up of 12 for all six
+  photographs. It stays first through 40 passes of the upload, one-phone and many-phones
+  journeys. Under the careless crop Bologna stays first, but its probability falls from 0.72 to
+  0.44. Under the harshest upload setting from experiment 1 the true place loses first place for
+  three photographs: Bologna comes second to Padua. This is one model and one list of names,
+  and the margins are thin.
 
-Numbers from the 17 November runs: see docs/dev-diary.md
+Four measuring tools turned out to be wrong, and each was fixed or replaced:
+
+- The project's SSIM measure (a score of how alike two pictures are in structure) shrinks
+  pictures to 512 pixels wide before comparing, so it cannot see the loss of detail finer than
+  that. `telephone detail-test` compares each pass with the same region of the original at the
+  picture's own size, and follows the crop.
+- The first version of that fine-detail measure counted the speckle that saving a JPEG adds. It
+  now counts only the original's detail that is still in place.
+- CLIP is a model that runs locally, with no key, and scores how well a picture matches a text
+  or another picture. It had been built with the wrong activation function for its weights: a
+  step inside the network did not match the one the model was trained with. The library only
+  warned. It is fixed, a test fails if it happens again, and experiment 1 was measured again.
+  The CLIP distances in `docs/tutorial-10nov/summary.md` changed, and that file now carries a
+  dated correction. SSIM, LPIPS (a learned score of how different two pictures look) and file
+  sizes were not affected.
+- The first rule for "has it stopped changing" counted the first pass that changed nothing. A
+  chain now counts as settled only when no later pass changes it.
+
+One prediction failed and is kept as failed. The abstract reflection crop was put into the place
+line-up as a control, a picture that should not be placeable. On the corrected model its true
+place came first anyway. The first calibration, scored on the mis-built model, is kept in
+`docs/evidence/` as a record.
 
 On the website, Bardia confirmed on 17 November who it is for (the order above), that it keeps
 its current look for now, and that it must not feel like an advert for an AI product or a wall of
-text. It is being cut to one plain-language page plus a "How it works" page. A "try your own
-photo" step will run entirely in the visitor's browser. `PRODUCT.md` records this. The Impeccable
-engine could not run in the cloud session, so no new look was created. That is a later step on
-Bardia's own machine.
+text. It is now one plain-language page plus "How it works" and "About". A visitor chooses what
+happens to a photograph, presses "Pass it on" and reads what is left. A "try your own photo"
+step runs entirely in the visitor's browser. The older technical pages are kept under `/lab` and
+are not linked from the published site. `PRODUCT.md` records the decisions. The Impeccable engine
+could not run in the cloud session, so no new look was created. That is a later step on Bardia's
+own machine. The published site only changes when this branch is merged into `main`.
 
 There are still no API keys, and nothing has been spent. Anything with a Reader or Painter
 station, and the survival form, waits for a key. The plan below says what runs without one.
@@ -203,19 +225,19 @@ Rules about money and keys:
 The experiments, in story order. The file numbers no longer run in this order, so each experiment
 is called by its name, with its file in brackets. Question numbers are the ones above.
 
-1. Re-upload (`experiments/exp01_compression.yaml`). For question 1. Done on 9 November. Being
-   re-measured after the CLIP fix.
+1. Re-upload (`experiments/exp01_compression.yaml`). For question 1. Done on 9 November, and
+   measured again on 17 November after the CLIP fix.
 2. Screenshot and forward (`experiments/exp07_screenshot_loop.yaml`). For question 2. Each pass
    shows the picture on a phone screen, takes a screenshot and uploads that. Variants: a
    re-upload control, an exact crop, an exact crop with a second way of resampling (working out
    the new pixels when a picture changes size), a different phone every pass, and a crop that is
-   a few pixels off. Built, running, no key.
+   a few pixels off. Done on 17 November, no key.
 3. The place line-up (`data/places.yaml` and the command `telephone place-test`). For question 3.
    Each photograph has a fixed line-up of 12 candidate places written as bare names, fixed before
    any score was seen, and the local CLIP model ranks them. The measurement is "the true place
    comes first, or Nth, in a line-up of 12", always quoted with its probability. It is an
    instrument for describe and redraw. On the compression chains it is the control, the baseline
-   to compare against. Built, running, no key.
+   to compare against. Built and run on both experiments on 17 November, no key.
 4. Describe and redraw (`experiments/exp02_caption_length.yaml`). For questions 3 and 4. The core
    loop: the Reader describes and the Painter redraws. Needs keys. The old photo-types experiment
    (`experiments/exp04_photo_types.yaml`) is folded into this one.
@@ -237,7 +259,9 @@ describe-and-redraw loops on Gemini only. The plan and the estimated cost come f
 tier may let Google use what is sent to it (see Ethics).
 
 Step 4. Save the real results as preloaded examples, so the website and the deck always have real
-content even with no keys.
+content even with no keys. Done for the experiments without AI: `telephone export-site` writes
+what the page shows into `web/public/data/`, and it is committed. To repeat when describe and
+redraw has run.
 
 After that:
 
@@ -245,8 +269,10 @@ After that:
   facts (the named place, the exact words on a sign, the coot, me) and generic facts (setting,
   mood, colours), so that "specific dies before generic" can be tested. Record what the machine
   adds as well as what it loses.
-- The log: figures, the hand-labelled validation of the metrics, then the deck.
-- The README.
+- The log: `log/outline.md` holds 19 slides up to 17 November and builds with
+  `python log/build_deck.py`. Still to come: the slides for describe and redraw, and the
+  hand-labelled validation of the metrics.
+- The README was brought up to date on 17 November.
 
 ## Words
 
@@ -257,6 +283,8 @@ After that:
 | drift | how far it has moved from the original |
 | survival | what is left ("still here" / "gone") |
 | describe and redraw | the only loop called a "retelling" |
+| variant | journey ("Upload it again", "A careless crop every time") |
+| settled | it has stopped changing |
 
 ## Which skill does what
 
@@ -383,3 +411,7 @@ Decisions taken on 17 November that Bardia has not confirmed one by one. Strike 
 7. The "try your own photo" step.
 8. Setting aside the two experiments.
 9. The word "pass" for generation.
+10. The careless crop as the first journey the site shows, because it is the one where a visitor
+    can see something happen.
+11. Keeping the older technical pages under `/lab`, and removing the live-run page, which needs
+    a server.

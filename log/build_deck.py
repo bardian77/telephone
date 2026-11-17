@@ -186,7 +186,7 @@ def build(outline: Path, figures: Path, out: Path, root: Path = ROOT) -> Path:
                 top = Emu(int(Inches(1.4) + i * each))
                 add_picture(slide, p, Inches(6.4), top, Inches(6.3), Emu(int(each - Inches(0.15))))
         else:
-            add_bullets(slide, Inches(0.6), Inches(1.4), Inches(12.1), Inches(5.2), bullets, 16)
+            add_bullets(slide, Inches(0.6), Inches(1.4), Inches(12.1), Inches(5.2), bullets, 19)
             if s["results"]:
                 add_text(
                     slide,
