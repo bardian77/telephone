@@ -6,12 +6,31 @@ description: >
   the photo at a fixed size and quality; all the damage happened on the first pass and then the
   loop sat still. Pete Ashton's reposts were screenshots, so his picture was redrawn on a phone
   screen before every upload. Here every generation ends with one upload to Instagram (longest
-  side 1080 px, JPEG quality 72) and the variants differ only in the step before it: no
-  screenshot, a screenshot cropped exactly, or a screenshot cropped a few pixels off. The
-  screenshot station scales the picture to fit a 1170 x 2532 phone screen and saves a PNG.
-  Expectation: the reupload chain stops changing after the first few passes. If resampling is
-  what makes the damage add up, the screenshot chains keep changing. SSIM to the previous
-  generation shows whether and when each chain settles.
+  side 1080 px, JPEG quality 72) and the variants differ in the step before it: no screenshot, a
+  screenshot cropped exactly (resampled in one of two ways), or a screenshot cropped a few
+  pixels off. The screenshot station scales the picture to fit a 1170 x 2532 phone screen and
+  saves a PNG. Expectation: the reupload chain stops changing after the first few passes. If
+  resampling is what makes the damage add up, the screenshot chains keep changing.
+
+  A chain counts as settled from the first generation whose SSIM to the previous generation is
+  1.000000, to six decimals. Files that are the same byte for byte are not the test. In
+  experiment 1's Instagram chain the lake and Seddon House photographs wrote a new file on all
+  20 passes, although that number was 1.000000 from pass 5.
+
+  SSIM in this project is measured on copies of the two pictures resized to 512 px wide, so
+  loss of detail finer than that does not show in it. A small SSIM gap between two variants is
+  therefore no evidence that the fine detail is intact, and "settled" means the picture has
+  stopped changing at that scale.
+
+  How much an exact-crop screenshot costs depends on how the picture is resampled when it is
+  drawn on the screen. The station offers bicubic and bilinear. How a real phone does it is not
+  known, so the exact crop is run both ways, and each result belongs to its own way of
+  resampling.
+
+  The abstract crop is only 460 px wide. The screenshot step enlarges it to the width of the
+  screen, as a phone would, and the upload then stores it 1080 px wide. The reupload control
+  never enlarges it. So for this photograph the screenshot variants are not like for like with
+  the control. It is reported on its own and left out of every per-variant average.
 images: ["data/originals/*.jpg", "data/originals/*.jpeg", "data/originals/*.png"]
 generations: 40
 seed: 7
@@ -20,21 +39,41 @@ extractor: { provider: anthropic, model: claude-sonnet-5-5 }
 metrics: { clip: true, lpips: true }
 variants:
   - name: reupload
-    notes: "Control: experiment 1's Instagram chain. It should sit still after pass 1."
+    notes: >-
+      Control: experiment 1's Instagram chain. It is expected to stop changing within the first
+      few passes, and that is checked for every photograph with SSIM to the previous generation.
+      In experiment 1's 20 passes five photographs got there by pass 5 and the 460 px abstract
+      crop did not.
     stations:
       - { kind: platform, params: { preset: instagram } }
   - name: screenshot
-    notes: "Screenshot with an exact crop, then upload. The picture is resampled every pass, the same way each time, and the framing is unchanged."
+    notes: >-
+      Screenshot with an exact crop, then upload. The picture is resampled every pass, the same
+      way each time (bicubic), and the framing does not change. The 460 px abstract crop is
+      enlarged by the screenshot, so for it this chain is not like for like with the control.
     stations:
       - { kind: screenshot, params: { crop_jitter_px: 0 } }
       - { kind: platform, params: { preset: instagram } }
   - name: screenshot_bilinear
-    notes: "The same as screenshot, with the station's other way of resampling (bilinear in place of bicubic)."
+    notes: >-
+      The same as screenshot with the station's other way of resampling, bilinear in place of
+      bicubic, because how a real phone resamples is not known. The 460 px abstract crop is
+      enlarged here too.
     stations:
       - { kind: screenshot, params: { crop_jitter_px: 0, resample: bilinear } }
       - { kind: platform, params: { preset: instagram } }
   - name: screenshot_loose_crop
-    notes: "Screenshot with a crop that is up to 6 px off on each edge, then upload. The picture is resampled every pass and the pixel grid shifts each time. The edges are slowly lost, so its distance-to-original numbers mix decay with reframing."
+    notes: >-
+      Screenshot with a crop that is up to 6 px off on each edge, then upload. The picture is
+      resampled every pass, the pixel grid shifts each time and the edges are slowly lost.
+      ssim_to_g0 compares each generation with the uncropped original, so for this variant it
+      measures the reframing and would be about the same if nothing had decayed.
+      clip_dist_to_g0, hist_dist_to_g0 and lpips_to_g0 contain the reframing too and cannot
+      separate it from decay. ssim_to_prev measures the change of crop from one pass to the
+      next, so the settling test does not apply. What this variant loses apart from the
+      reframing can only be read from a comparison that follows the crop. With one seed and one
+      repeat every photograph gets the same crops, so the six chains are not six independent
+      tries of the cropping. The 460 px abstract crop is enlarged by the screenshot here too.
     stations:
       - { kind: screenshot, params: { crop_jitter_px: 6 } }
       - { kind: platform, params: { preset: instagram } }

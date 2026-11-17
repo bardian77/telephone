@@ -508,19 +508,27 @@ def test_exp07_says_what_its_numbers_can_and_cannot_show():
     notes = {v["name"]: " ".join((v.get("notes") or "").split()) for v in exp.variants}
     # SSIM is computed on copies 512 px wide, so it cannot see finer detail being lost
     assert "512 px" in description and "finer" in description
-    # the phone enlarges the 460 px abstract crop; the reupload control never does
+    # the phone enlarges the 460 px abstract crop; the reupload control never does. So that
+    # photograph is not like for like, and it stays out of the per-variant averages
     assert "460 px" in description and "enlarge" in description
+    assert "like for like" in description and "average" in description
     for name in ("screenshot", "screenshot_bilinear", "screenshot_loose_crop"):
         assert "enlarge" in notes[name], name
-    # the size of the effect belongs to the way of resampling, not to screenshots in general
+    # the size of the effect belongs to the way of resampling, and a real phone's is not known
     assert "bicubic" in description and "bilinear" in description
+    assert "not known" in description
     # settling is read from SSIM to the previous generation, not from identical files
     assert "1.000000" in description and "byte for byte" in description
-    assert "expect" in notes["reupload"].lower() and "should sit still" not in notes["reupload"]
-    # the loose crop's numbers measure the reframing, and decay is not measured for it
-    assert "reframing" in notes["screenshot_loose_crop"]
-    assert "not measured" in notes["screenshot_loose_crop"]
-    assert "same crops" in notes["screenshot_loose_crop"]  # one seed, one repeat
+    # the control settling is an expectation that is checked, not a fact
+    assert "expect" in notes["reupload"].lower() and "checked" in notes["reupload"]
+    assert "should sit still" not in notes["reupload"]
+    # The loose crop's distance-to-original columns measure the reframing. The note names the
+    # columns, so it stays true when a comparison that follows the crop is added beside them.
+    loose = notes["screenshot_loose_crop"]
+    assert "reframing" in loose and "if nothing had decayed" in loose
+    assert "ssim_to_g0" in loose and "ssim_to_prev" in loose
+    assert "not measured" not in loose  # would stop being true once that comparison exists
+    assert "same crops" in loose  # one seed, one repeat
 
 
 def test_exp07_runs_keyless_the_same_way_exp01_does():
