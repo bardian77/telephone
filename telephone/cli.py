@@ -807,6 +807,42 @@ def detail_test(
     console.print(left_out, style="dim", soft_wrap=True, markup=False)
 
 
+@app.command("export-site")
+def export_site_cmd(
+    experiment: Annotated[
+        str, typer.Argument(help="Experiment id in the ledger, e.g. exp07_screenshot_loop")
+    ],
+    out: Path = typer.Option(None, help="Default: web/public/data"),
+    variants: str = typer.Option(
+        None, help="Comma-separated variant names, in the order the page shows them"
+    ),
+    passes: str = typer.Option(
+        None, help="Comma-separated generations that get a picture. Default: 0,1,2,5,10,20,40"
+    ),
+    max_mb: float = typer.Option(40.0, "--max-mb", help="Refuse to write more pictures than this"),
+):
+    """Write what the one-page website reads: site.json and the pictures it shows, byte for
+    byte as the pipeline wrote them."""
+    from .site import export_site
+
+    try:
+        summary = export_site(
+            out or paths.project_root() / "web" / "public" / "data",
+            experiment,
+            variants=[v.strip() for v in variants.split(",") if v.strip()] if variants else None,
+            passes=[int(x) for x in passes.split(",") if x.strip()] if passes else None,
+            max_mb=max_mb,
+        )
+    except ValueError as e:
+        _fail_stderr(str(e), code=1)
+    console.print(
+        f"wrote {summary['out']}/site.json: {summary['photos']} photographs, "
+        f"{summary['pictures']} pictures, {summary['mb']} MB",
+        soft_wrap=True,
+        markup=False,
+    )
+
+
 @app.command("make-fixtures")
 def make_fixtures(
     folder: Path = typer.Option(None, help="Default: data/fixtures (only exp00 reads it)"),
