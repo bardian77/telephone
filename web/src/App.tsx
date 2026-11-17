@@ -1,49 +1,56 @@
 import { useEffect, useState } from 'react'
-import { HashRouter, NavLink, Route, Routes } from 'react-router-dom'
-import { loadIndex, type Index } from './data'
-import Home from './pages/Home'
-import Photo from './pages/Photo'
-import ExperimentPage from './pages/ExperimentPage'
-import ChainPage from './pages/ChainPage'
-import Compare from './pages/Compare'
-import Label from './pages/Label'
-import Live from './pages/Live'
+import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import About from './pages/About'
+import HowItWorks from './pages/HowItWorks'
+import Lab from './pages/Lab'
+import Story from './pages/Story'
+import { loadSite, type Site } from './site'
+
+/** Start each page at its top, as a normal link would. */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => window.scrollTo(0, 0), [pathname])
+  return null
+}
 
 export default function App() {
-  const [index, setIndex] = useState<Index | null>(null)
-  const [sample, setSample] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
-  useEffect(() => { loadIndex().then(({ index, sample }) => { setIndex(index); setSample(sample) }).catch((e) => setErr(String(e))) }, [])
+  const [site, setSite] = useState<Site | null | undefined>(undefined) // undefined: still loading
+  useEffect(() => { loadSite().then(setSite) }, [])
+  const missing = (
+    <p className="muted">
+      The photographs have not been published to this copy of the site yet. They are written by <code>telephone export-site</code>.
+    </p>
+  )
   return (
     <HashRouter>
+      <ScrollToTop />
+      <a className="skip" href="#main">Skip to the page</a>
       <div className="shell">
         <header className="top">
           <NavLink to="/" className="brand">Telephone</NavLink>
-          <nav>
-            <NavLink to="/" end>Chains</NavLink>
-            <NavLink to="/compare">Compare</NavLink>
-            <NavLink to="/live">Live</NavLink>
-            <NavLink to="/label">Label</NavLink>
+          <nav aria-label="Pages">
+            <NavLink to="/" end>The photographs</NavLink>
+            <NavLink to="/how">How it works</NavLink>
             <NavLink to="/about">About</NavLink>
-            <a href="https://github.com/bardian77/telephone">Code</a>
           </nav>
         </header>
-        {sample && <div className="banner">Showing the <b>sample dataset</b>: synthetic test images through mock models, so the site works before any real experiment has run. Real chains replace this after <code>telephone export</code>.</div>}
-        {err && <p style={{ color: 'var(--dead)' }}>{err}</p>}
-        {index ? (
-          <Routes>
-            <Route path="/" element={<Home index={index} />} />
-            <Route path="/photo/:image" element={<Photo index={index} />} />
-            <Route path="/experiments/:id" element={<ExperimentPage index={index} />} />
-            <Route path="/chain/:key" element={<ChainPage index={index} />} />
-            <Route path="/compare" element={<Compare index={index} />} />
-            <Route path="/label" element={<Label index={index} />} />
-            <Route path="/live" element={<Live index={index} />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
-        ) : !err && <p className="faint">Loading…</p>}
-        <footer>Bardia Nasab · 5IMAG022W The Networked Photograph · {index ? `data exported ${new Date(index.generated_at).toLocaleDateString()}` : ''}</footer>
+        <main id="main">
+          {site === undefined ? (
+            <p className="faint">Loading…</p>
+          ) : (
+            <Routes>
+              <Route path="/" element={site ? <Story site={site} /> : missing} />
+              <Route path="/how" element={<HowItWorks site={site} />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/lab/*" element={<Lab />} />
+            </Routes>
+          )}
+        </main>
+        <footer>
+          Bardia Nasab · 5IMAG022W The Networked Photograph ·{' '}
+          <a href="https://github.com/bardian77/telephone">the code and every result</a>
+          {site ? ` · pictures published ${new Date(site.generated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}
+        </footer>
       </div>
     </HashRouter>
   )

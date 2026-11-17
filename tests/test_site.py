@@ -115,6 +115,7 @@ def test_detail_numbers_are_attached_and_a_stale_results_file_is_not_trusted(tmp
         "ssim_native": 1.0,
         "detail_kept": 1.0,
         "frame_kept": 1.0,
+        "box": [0.0, 0.0, 600.0, 400.0],  # the part of the original this pass still shows
     }
     assert loose["passes"][2]["detail"]["frame_kept"] < 1.0
     assert loose["series"]["frame_kept"][0] == 1.0 and loose["series"]["frame_kept"][4] < 1.0

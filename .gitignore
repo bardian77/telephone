@@ -35,6 +35,9 @@ web/dist/
 web/public/data/*
 !web/public/data/.gitkeep
 !web/public/data/sample/
+# the one-page site's own export is committed, so the published site has real pictures
+!web/public/data/site.json
+!web/public/data/img/
 # deck
 log/build/
 # os

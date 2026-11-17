@@ -34,7 +34,7 @@ export default function ExperimentPage({ index }: { index: Index }) {
 
   return (
     <>
-      <p className="small"><Link to="/">← all experiments</Link></p>
+      <p className="small"><Link to="/lab">← all experiments</Link></p>
       <h1>{exp.title}</h1>
       {exp.question && <p className="lead muted">{exp.question}</p>}
       {exp.description && <p>{exp.description}</p>}
@@ -93,7 +93,7 @@ export default function ExperimentPage({ index }: { index: Index }) {
       </div>
       <div className="grid">
         {chains.map((c) => (
-          <Link key={c.key} to={`/chain/${c.key}`} className="card">
+          <Link key={c.key} to={`/lab/chain/${c.key}`} className="card">
             <div className="pair"><img src={assetUrl(c.thumb0)} alt="generation 0" loading="lazy" /><img src={assetUrl(c.thumb_last)} alt={`generation ${c.last_generation}`} loading="lazy" /></div>
             <div className="title">{c.variant}{c.repeat ? ` · r${c.repeat}` : ''} <span className="muted mono small">{c.image}</span></div>
             <div className="badges">
