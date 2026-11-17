@@ -1,0 +1,36 @@
+# Sentences written by people for the human telephone chain, and Bardia's own captions.
+# How to collect them: docs/human-telephone.md. The sheet readers write on:
+# docs/human-telephone-sheet.md.
+#
+# No names in this file. Only sentences whose writer ticked the consent box may be shown.
+#
+# The six photographs and their letters on the sheet:
+#   A  street_bologna_portici_01
+#   B  street_barbican_lake_01
+#   C  text_barbican_seddon_house_01
+#   D  landscape_dolomites_larches_01
+#   E  portrait_dolomites_self_01
+#   F  abstract_barbican_reflection_01
+#
+# The shape of one entry (this is a comment, not data):
+#
+#   - photo: street_bologna_portici_01   # the file name without .jpg
+#     version: many_readers              # many_readers, or chain
+#     position: 1                        # place in the chain; for many_readers a running number
+#     seconds_shown: 30
+#     sentence: "..."                    # exactly as written, spelling mistakes included
+#     consent_to_show: true              # false if the box was not ticked
+#     collected_on: 2026-12-01
+
+# Nothing has been collected yet.
+entries: []
+
+# Bardia's own one-sentence caption for each photograph. Written by Bardia and nobody else:
+# nothing in the project may fill these in. Leave a caption empty until it is written.
+author_captions:
+  street_bologna_portici_01: ""
+  street_barbican_lake_01: ""
+  text_barbican_seddon_house_01: ""
+  landscape_dolomites_larches_01: ""
+  portrait_dolomites_self_01: ""
+  abstract_barbican_reflection_01: ""
