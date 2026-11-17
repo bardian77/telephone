@@ -178,9 +178,7 @@ def export_site(
             place = _measured(place_rows, rec, PLACE_KEYS)
             row = place_rows.get((rec.chain_id, rec.repeat, rec.generation))
             if place is not None and row is not None and not made_with:
-                made_with = {
-                    k: row[k] for k in ("clip_model", "preprocessing", "lineup") if k in row
-                }
+                made_with = {k: row[k] for k in ("clip_model", "preprocessing") if k in row}
             shown.append(
                 {
                     "pass": rec.generation,

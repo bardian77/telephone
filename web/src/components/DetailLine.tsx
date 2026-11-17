@@ -13,7 +13,7 @@ type Props = {
 /** One hand-written SVG line chart: share of fine detail left (0 to 100%) against the pass
  * number. The chosen journey is drawn strong, the others faint, each named at its end. */
 export default function DetailLine({ lines, selected, current, label }: Props) {
-  const W = 640, H = 240, m = { l: 44, r: 150, t: 14, b: 34 }
+  const W = 700, H = 240, m = { l: 44, r: 210, t: 14, b: 34 } // room on the right for each line's name
   const last = Math.max(1, ...lines.map((l) => l.values.length - 1))
   const sx = (x: number) => m.l + (x / last) * (W - m.l - m.r)
   const sy = (y: number) => m.t + (1 - Math.min(1, Math.max(0, y))) * (H - m.t - m.b)

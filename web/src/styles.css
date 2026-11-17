@@ -182,8 +182,8 @@ button:active:not(:disabled) { transform: scale(0.97); }
 .row.here .state { color: var(--here-text); }
 .row.going .state { color: var(--going-text); }
 .row.going .state::before { background: none; border: 2px solid currentColor; box-sizing: border-box; }
-.row.gone .state { color: var(--gone-text); }
-.row.gone .state::before { height: 2px; border-radius: 0; }
+.row.gone .state, .row.most .state { color: var(--gone-text); }
+.row.gone .state::before, .row.most .state::before { height: 2px; border-radius: 0; }
 
 .closer { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 .loupe { flex: 0 0 auto; width: 220px; height: 220px; max-width: 60vw; padding: 0; border: 1px solid var(--line); border-radius: 8px; background-color: var(--surface-2); background-repeat: no-repeat; cursor: default; }

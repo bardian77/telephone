@@ -9,7 +9,7 @@ Writes to docs/tutorial-17nov/figures/:
   place_calibration.png      the true place's probability, on the mis-built and corrected model
   place_over_passes.png      the true place's probability over the passes
   exp01_clip_before_after.png  experiment 1's CLIP distances before and after the correction
-  closeup_<stem>.png         the same spot of each photograph, at every journey and pass
+  closeup_<stem>.jpg         the same spot of each photograph, at every journey and pass
   figures.json               for each figure: what it shows, where the numbers come from, alt text
 
 and prints the table the written summary quotes. Run from anywhere:
@@ -116,19 +116,21 @@ def settled_at(chain: dict[int, dict]) -> int | None:
     return settled(prev)
 
 
-def save(fig, name: str, what: str, sources: list[str], alt: str) -> None:
+def save(fig, name: str, what: str, sources: list[str], alt: str, kind: str = "png") -> None:
+    """Charts are saved as PNG. Grids of photographs are saved as JPEG (`kind="jpg"`): as PNG
+    they are several megabytes each, and nothing is measured from them."""
     export_figure(
         fig,
         OUT / name,
-        formats=["png"],
-        dpi=160,
+        formats=[kind],
+        dpi=160 if kind == "png" else 130,
         overwrite=True,
         mkdir=True,
         provenance={"raw_data": ", ".join(sources), "transformations": ["none: values as saved"]},
     )
     plt.close(fig)
-    DESCRIPTIONS[f"{name}.png"] = {"shows": what, "sources": sources, "alt": alt}
-    print(f"wrote {OUT / name}.png")
+    DESCRIPTIONS[f"{name}.{kind}"] = {"shows": what, "sources": sources, "alt": alt}
+    print(f"wrote {OUT / name}.{kind}")
 
 
 def legend_handles(journeys: list[str]):
@@ -557,9 +559,11 @@ def closeups(ledger, detail) -> None:
             f"closeup_{stem}",
             f"The same spot of '{name}' for each journey and pass. Each cell is cut from the "
             "pipeline's output file with no processing; the 'original' cell is that region of "
-            "the original resized once to the size of pass 1.",
+            "the original resized once to the size of pass 1. Where the spot is near the edge of "
+            "what is left of the frame, the cell shows the nearest part of the frame.",
             [f"data/runs/{EXP}/ (local pictures)", f"data/results/{EXP}_detail.jsonl"],
             f"A grid of close-ups of {name}: one row per journey, one column per pass.",
+            kind="jpg",
         )
 
 

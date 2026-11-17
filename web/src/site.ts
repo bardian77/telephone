@@ -120,12 +120,12 @@ export const JOURNEYS: Array<{ id: string; label: string; says: string }> = [
   {
     id: 'screenshot_many_phones',
     label: 'A different phone every time',
-    says: 'The same, but every pass happens on a different phone, as when a picture is forwarded from person to person.',
+    says: 'The same, but every pass happens on a phone of a different size, as when a picture is forwarded from person to person.',
   },
   {
     id: 'screenshot_loose_crop',
     label: 'A careless crop every time',
-    says: 'The same on one phone, but each screenshot is cropped a few pixels off.',
+    says: 'Each pass shows the picture on a phone, takes a screenshot, crops it a few pixels off and uploads that.',
   },
 ]
 

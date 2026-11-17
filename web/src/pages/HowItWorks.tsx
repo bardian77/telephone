@@ -138,7 +138,11 @@ export default function HowItWorks({ site }: { site: Site | null }) {
         </li>
         <li>
           I then expected screenshots to keep the damage adding up, because each one redraws the picture. With an exact crop
-          on one phone, that loop settles as well. It only keeps going when something varies between passes.
+          on one phone, that loop settles as well.
+        </li>
+        <li>
+          So I expected a different phone every pass to keep it going. It does keep changing, but so slowly that after 40
+          passes it had lost only a little more than on one phone. What adds up is a crop that is slightly off each time.
         </li>
         <li>
           My first similarity score compared copies shrunk to 512 pixels wide. It reported almost no change in pictures that

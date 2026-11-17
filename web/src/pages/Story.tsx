@@ -6,9 +6,9 @@ import { JOURNEYS, PHOTOS, dataUrl, kb, percent, shortPlace, type Journey, type 
 
 type Focus = { x: number; y: number } // a point on the original, as fractions of its width and height
 type Sel = { photo: string; journey: string; pass: number } // what the visitor has chosen
-type Row = { term: string; state: 'here' | 'going' | 'gone' | 'plain'; text: string }
+type Row = { term: string; state: 'here' | 'going' | 'most' | 'gone' | 'plain'; text: string }
 
-const STATE_WORD = { here: 'still here', going: 'going', gone: 'gone', plain: '' } as const
+const STATE_WORD = { here: 'still here', going: 'going', most: 'mostly gone', gone: 'gone', plain: '' } as const
 const LOUPE = 220 // CSS pixels
 
 /** Where a point of the original sits in this pass's picture, as fractions of the picture. */
@@ -77,7 +77,7 @@ function rowsFor(photo: SitePhoto, journey: Journey, p: SitePass): Row[] {
     const added = (p.detail?.detail_energy ?? 0) - kept > 0.15 ? ' Saving has also added marks that were never in the photograph.' : ''
     rows.push({
       term: 'Fine detail',
-      state: share >= 0.9 ? 'here' : share >= 0.5 ? 'going' : 'gone',
+      state: share >= 0.9 ? 'here' : share >= 0.5 ? 'going' : share >= 0.1 ? 'most' : 'gone',
       text: (share >= 0.995 ? 'About all of it is left.' : `${percent(share)} of the fine detail is left.`) + added,
     })
   }
@@ -156,7 +156,7 @@ export default function Story({ site }: { site: Site }) {
   const [params, setParams] = useSearchParams()
   const [sel, setSel] = useState<Sel>(() => ({
     photo: params.get('photo') ?? photos[0]?.photo.stem ?? '',
-    journey: params.get('journey') ?? 'screenshot_many_phones',
+    journey: params.get('journey') ?? 'screenshot_loose_crop',
     pass: Number(params.get('pass') ?? 0) || 0,
   }))
   useEffect(() => {
@@ -308,9 +308,13 @@ export default function Story({ site }: { site: Site }) {
           </>
         )}
         <p>
-          The same step repeated settles: after a few passes it hands back the picture it was given. The damage only keeps adding up
-          when something changes from one pass to the next, such as a different phone or a different crop. That is closer to how a
-          picture really travels.
+          A step that is repeated exactly settles: sooner or later it hands back the picture it was given. Uploading does that
+          almost at once. Screenshotting on one phone takes longer, and how much is lost on the way depends on how that phone
+          redraws a picture. A different phone every time keeps changing it, but more and more slowly.
+        </p>
+        <p>
+          What keeps wearing a picture down is the careless crop. Each one shifts the picture a little against the screen’s
+          grid of pixels and cuts off its edges, and that damage adds up with every pass.
         </p>
         <p className="muted">
           <Link to="/how">How each of these is measured, and what the measurements cannot show</Link>

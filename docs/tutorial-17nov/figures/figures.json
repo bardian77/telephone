@@ -1,0 +1,95 @@
+{
+  "detail_by_journey.png": {
+    "shows": "Fine detail left after each pass, for five photographs and five journeys.",
+    "sources": [
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "Five line charts, one per photograph. In each, the control and the two one-phone screenshot journeys level off within the first passes, while the different-phone and careless-crop journeys keep falling."
+  },
+  "settled_at.png": {
+    "shows": "The pass at which each journey stopped changing, for six photographs. This test reads change at the scale of a 512 px copy; for the careless-crop journey it only shows that the crop differs every pass.",
+    "sources": [
+      "data/results/exp07_screenshot_loop.jsonl"
+    ],
+    "alt": "A dot chart with one row per photograph. Dots for the control sit at low pass numbers, dots for the one-phone screenshot journeys sit later, and dots for the different-phone and careless-crop journeys sit in the 'not in 40 passes' column."
+  },
+  "two_measures.png": {
+    "shows": "After 40 passes, the control and the one-phone screenshot journey compared by the first SSIM (on 512 px copies) and by the two measures made at the picture's own size.",
+    "sources": [
+      "data/results/exp07_screenshot_loop.jsonl",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "Three panels of paired dots for five photographs. In the first panel the two journeys are almost on top of each other near 1. In the second and third the screenshot journey sits clearly lower than the control."
+  },
+  "place_calibration.png": {
+    "shows": "Where the true place comes in its line-up of 12 for the six originals, on the mis-built CLIP model and on the corrected one. The three line-ups are not equally hard.",
+    "sources": [
+      "data/results/place_calibration.json",
+      "docs/evidence/2026-11-17_place_calibration_wrong_clip_build.json"
+    ],
+    "alt": "Six rows of paired dots. On the corrected model every true place ranks first. The reflection crop, registered as a control that should not be placeable, moves from about chance on the mis-built model to about 0.6 on the corrected one."
+  },
+  "place_over_passes.png": {
+    "shows": "The probability CLIP gives the true place, pass by pass. A cross marks any pass where the true place was not ranked first. The dotted line is chance (1 in 12).",
+    "sources": [
+      "data/results/exp07_screenshot_loop_place.jsonl"
+    ],
+    "alt": "Six line charts, one per photograph, showing the probability of the true place over the passes for each journey."
+  },
+  "exp01_clip_before_after.png": {
+    "shows": "Experiment 1's CLIP distance to the original at the last pass, for each of the 24 chains, as first measured and as measured again on the corrected model.",
+    "sources": [
+      "data/results/exp01_compression.jsonl",
+      "docs/evidence/2026-11-09_exp01_results_wrong_clip_build.jsonl"
+    ],
+    "alt": "A scatter chart with a diagonal 'same value' line. Each dot is one chain."
+  },
+  "closeup_street_bologna_portici_01.jpg": {
+    "shows": "The same spot of 'Bologna, the porticoes' for each journey and pass. Each cell is cut from the pipeline's output file with no processing; the 'original' cell is that region of the original resized once to the size of pass 1. Where the spot is near the edge of what is left of the frame, the cell shows the nearest part of the frame.",
+    "sources": [
+      "data/runs/exp07_screenshot_loop/ (local pictures)",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "A grid of close-ups of Bologna, the porticoes: one row per journey, one column per pass."
+  },
+  "closeup_street_barbican_lake_01.jpg": {
+    "shows": "The same spot of 'The Barbican lake' for each journey and pass. Each cell is cut from the pipeline's output file with no processing; the 'original' cell is that region of the original resized once to the size of pass 1. Where the spot is near the edge of what is left of the frame, the cell shows the nearest part of the frame.",
+    "sources": [
+      "data/runs/exp07_screenshot_loop/ (local pictures)",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "A grid of close-ups of The Barbican lake: one row per journey, one column per pass."
+  },
+  "closeup_text_barbican_seddon_house_01.jpg": {
+    "shows": "The same spot of 'Seddon House sign' for each journey and pass. Each cell is cut from the pipeline's output file with no processing; the 'original' cell is that region of the original resized once to the size of pass 1. Where the spot is near the edge of what is left of the frame, the cell shows the nearest part of the frame.",
+    "sources": [
+      "data/runs/exp07_screenshot_loop/ (local pictures)",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "A grid of close-ups of Seddon House sign: one row per journey, one column per pass."
+  },
+  "closeup_landscape_dolomites_larches_01.jpg": {
+    "shows": "The same spot of 'Larches, Dolomites' for each journey and pass. Each cell is cut from the pipeline's output file with no processing; the 'original' cell is that region of the original resized once to the size of pass 1. Where the spot is near the edge of what is left of the frame, the cell shows the nearest part of the frame.",
+    "sources": [
+      "data/runs/exp07_screenshot_loop/ (local pictures)",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "A grid of close-ups of Larches, Dolomites: one row per journey, one column per pass."
+  },
+  "closeup_portrait_dolomites_self_01.jpg": {
+    "shows": "The same spot of 'Self-portrait, Dolomites' for each journey and pass. Each cell is cut from the pipeline's output file with no processing; the 'original' cell is that region of the original resized once to the size of pass 1. Where the spot is near the edge of what is left of the frame, the cell shows the nearest part of the frame.",
+    "sources": [
+      "data/runs/exp07_screenshot_loop/ (local pictures)",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "A grid of close-ups of Self-portrait, Dolomites: one row per journey, one column per pass."
+  },
+  "closeup_abstract_barbican_reflection_01.jpg": {
+    "shows": "The same spot of 'Reflection (460 px crop)' for each journey and pass. Each cell is cut from the pipeline's output file with no processing; the 'original' cell is that region of the original resized once to the size of pass 1. Where the spot is near the edge of what is left of the frame, the cell shows the nearest part of the frame.",
+    "sources": [
+      "data/runs/exp07_screenshot_loop/ (local pictures)",
+      "data/results/exp07_screenshot_loop_detail.jsonl"
+    ],
+    "alt": "A grid of close-ups of Reflection (460 px crop): one row per journey, one column per pass."
+  }
+}
