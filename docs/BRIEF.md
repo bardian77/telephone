@@ -39,9 +39,9 @@ A photograph matters because it is specific: this place, this light, this person
 that carry photographs now keep what is typical and drop what is specific. Telephone shows that
 happening to my own photographs, one pass at a time, and names what goes first.
 
-It is for ordinary people first: the photo you send is not the photo that arrives, and when a
-machine describes or redraws your picture, this is what it thinks matters. Photographers come
-second: it shows which parts of a picture are fragile in circulation. Tutors come third.
+It is for ordinary people first. The photo you send is not the photo that arrives, and when a
+machine describes or redraws your picture, the project shows what it thinks matters. Photographers
+come second: it shows which parts of a picture are fragile in circulation. Tutors come third.
 
 Two everyday cases show what this means. A photo re-sent through messaging apps is usually shrunk
 and re-saved each time. A description written by a machine, such as the automatic alt text some
@@ -201,7 +201,7 @@ Rules about money and keys:
 ## The plan
 
 The experiments, in story order. The file numbers no longer run in this order, so each experiment
-is called by its name, with its file in brackets. The question numbers are the ones above.
+is called by its name, with its file in brackets. Question numbers are the ones above.
 
 1. Re-upload (`experiments/exp01_compression.yaml`). For question 1. Done on 9 November. Being
    re-measured after the CLIP fix.
@@ -284,8 +284,9 @@ and test-first was followed by hand.
 
 ## References
 
-Claude wrote the notes on what each text says. Check each against the text before citing it.
-"Handbook" marks the module handbook's own words. "Claude's gloss" marks a guess.
+Claude wrote the notes on what each text says. "Handbook" marks the module handbook's own words.
+"Claude's gloss" marks Claude's own reading, which Bardia needs to check against the text before
+citing it.
 
 From the module reading list:
 

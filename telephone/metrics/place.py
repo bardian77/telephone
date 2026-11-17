@@ -424,7 +424,8 @@ def calibrate_places(
     """Where does the true place come in its line-up before any loop has run?
 
     `images` maps a photograph's stem to its generation-0 bytes. Returns
-      photographs  each photograph scored in its own line-up (as score_place)
+      photographs  each photograph scored in its own line-up (as score_place), with the sha256
+                   of the bytes that were scored
       cross        each photograph scored against every place it was NOT taken in, inside that
                    place's own line-up: a check that, say, the Dolomites picture does not put
                    Bologna first among the cities
@@ -444,6 +445,7 @@ def calibrate_places(
         photographs.append(
             {
                 "image": stem,
+                "image_sha256": sha256_bytes(images[stem]),  # the bytes that were scored
                 "negative_control": entry.negative_control,
                 **_score_vector(vec, entry, embedder, templates),
             }

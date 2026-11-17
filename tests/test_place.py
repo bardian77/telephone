@@ -702,6 +702,10 @@ def test_calibration_scores_every_photograph_in_its_own_lineup():
     assert own["street_a_01"]["place"] == A and own["street_a_01"]["lineup_size"] == 3
     assert own["street_a_01"]["specific_minus_generic"] == pytest.approx(1.0 - cos(20))
     assert sorted(fake.image_calls) == [b"a1", b"a2", b"d1"]  # each picture embedded once
+    # each row says which bytes were scored, so a photograph replaced later under the same
+    # name can be told from the one that was calibrated
+    assert own["street_a_01"]["image_sha256"] == sha256_bytes(b"a1")
+    assert own["street_a_02"]["image_sha256"] == sha256_bytes(b"a2")
 
 
 def test_calibration_cross_table_scores_each_photograph_against_the_other_places():
@@ -1252,8 +1256,10 @@ def test_calibrate_scores_the_originals_and_writes_the_calibration_file(monkeypa
     assert (wrong_town["rank"], wrong_town["top"]) == (10, "Deeford, Testland")
     assert wrong_town["prob"] == 0.0
 
-    # only the two public originals with an entry were looked at
+    # only the two public originals with an entry were looked at, as the bytes a chain stores
+    # as generation 0: the sha is the output_sha a chain's generation 0 row would carry
     assert sorted(fake.image_calls) == sorted(g0.values())
+    assert street["image_sha256"] == sha256_bytes(g0["street_test_01"])
     assert "secret" not in out.read_text(encoding="utf-8")
     # the printed summary names every photograph it scored and every one it could not find
     for stem in ("street_test_01", "landscape_test_01", "street_missing_01", "street_secret_01"):
