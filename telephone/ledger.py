@@ -177,13 +177,20 @@ class Ledger:
         self.conn.commit()
         return cur.rowcount
 
-    def save_results(self, experiment_id: str, path: Path) -> int:
+    def save_results(
+        self, experiment_id: str, path: Path, leave_out: set[str] | None = None
+    ) -> int:
         """Write every row of one experiment as sorted JSONL (chain, repeat, generation).
 
         The file is a snapshot of SQLite, written whole each time, so it never drifts from the
-        database and is safe to commit. `import_jsonl` reads it back.
+        database and is safe to commit. `import_jsonl` reads it back. `leave_out` is a set of
+        photograph names (file stems) whose rows are not written: the private photographs,
+        because this file is committed.
         """
         recs = self.experiment(experiment_id)
+        if leave_out:
+            # a chain id is <experiment>__<variant>__<photograph>
+            recs = [r for r in recs if (r.chain_id.split("__") + ["", ""])[2] not in leave_out]
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(path.suffix + ".tmp")

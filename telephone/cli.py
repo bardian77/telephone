@@ -455,7 +455,9 @@ def save_results(
     experiment: Annotated[str, typer.Argument(help="Experiment id, e.g. exp01_compression")],
     out: Path = typer.Option(None, help="Output file (default data/results/<experiment>.jsonl)"),
 ):
-    """Write one experiment's ledger rows to a sorted JSONL file that can be committed."""
+    """Write one experiment's ledger rows to a sorted JSONL file that can be committed.
+    Photographs kept in data/originals/private/ are left out."""
+    from .export import _private_stems
     from .ledger import Ledger
 
     s = get_settings()
@@ -469,8 +471,11 @@ def save_results(
             _fail(f"No experiment {experiment!r} in the ledger. Known: {known}", code=1)
         experiment = matches[0]
     path = out or s.results_dir / f"{experiment}.jsonl"
-    n = led.save_results(experiment, path)
-    console.print(f"wrote {n} rows to {path}")
+    total = len(led.experiment(experiment))
+    n = led.save_results(experiment, path, leave_out=_private_stems())
+    console.print(f"wrote {n} rows to {path}", soft_wrap=True)
+    if n < total:
+        console.print(f"left out {total - n} rows of private photographs", style="dim")
 
 
 @app.command("load-results")

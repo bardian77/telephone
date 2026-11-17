@@ -235,3 +235,38 @@ def test_export_site_from_the_command_line(tmp_path):
 
     result = CliRunner().invoke(app, ["export-site", "nothing_like_this", "--out", str(out)])
     assert result.exit_code == 1 and "Traceback" not in result.output
+
+
+# -- private photographs and the committed results file ----------------------------------------------
+
+
+def test_save_results_leaves_out_a_private_photograph(tmp_path):
+    """data/results/ is committed. A photograph kept in data/originals/private/ must not show up
+    there, not even as a name and a row of numbers."""
+    from test_detail import OFFLINE
+
+    from telephone.chain import ChainRunner
+    from telephone.models import ChainConfig
+
+    picture = tmp_path / "detail.png"
+    detailed_image((300, 200)).save(picture)
+    for stem in ("street_public_01", "street_secret_01"):
+        ChainRunner(options=OFFLINE).run(
+            ChainConfig(
+                chain_id=f"t__reupload__{stem}",
+                experiment_id="t",
+                image=str(picture),
+                stations=[UPLOAD],
+                generations=2,
+            )
+        )
+    s = get_settings()
+    s.private_dir.mkdir(parents=True, exist_ok=True)
+    (s.private_dir / "street_secret_01.jpg").write_bytes(b"x")
+
+    result = CliRunner().invoke(app, ["save-results", "t"])
+    assert result.exit_code == 0, result.output
+    saved = (s.results_dir / "t.jsonl").read_text(encoding="utf-8")
+    assert "street_public_01" in saved and "street_secret_01" not in saved
+    assert len(saved.splitlines()) == 3  # generations 0, 1 and 2 of the public chain only
+    assert "3 rows" in result.output and "private" in result.output

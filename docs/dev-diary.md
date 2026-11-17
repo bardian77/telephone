@@ -146,7 +146,7 @@ was already planned, a first measurement of whether a place survives, a rewrite 
 the README, a kit for the two experiments only Bardia can do, and the website cut down to one
 plain-language page.
 
-What was built, each with tests written first (the suite went from 55 tests to 245; three of
+What was built, each with tests written first (the suite went from 55 tests to 246; three of
 them need the real CLIP model and are skipped unless asked for).
 
 - A `screenshot` station and `experiments/exp07_screenshot_loop.yaml`: five journeys of 40 passes.
@@ -239,8 +239,9 @@ the visitor's browser, which changes the old rule "visitors cannot upload anythi
 Not acted on, kept here as follow-ups. From the first review: seven behaviours in the place
 tests that can be broken without a test failing; CLIP sees only the central square of a picture
 (for the self-portrait the result depends on which square it is shown); the three line-ups are
-not equally hard. From before: `save-results` would include a private photograph's rows; a
-replaced photograph under the same filename is resumed from the old generation 0. New: the loose
+not equally hard. From before: a replaced photograph under the same filename is resumed from the old
+generation 0. (The other one from 9 November is fixed: `save-results` now leaves private
+photographs out of the committed file, with a test.) New: the loose
 crop uses one sequence of crops for all six photographs, so they are not six independent tries;
 the screenshot step is my model of a phone, and a real screenshot cropped by hand has not been
 compared with it; the browser version of "try your own photo" blurs more than the pipeline does,
