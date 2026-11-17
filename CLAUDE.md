@@ -42,3 +42,17 @@ Say which skill you are using before you start a task.
 - `humanizer` applies to prose only. It must never change a number, metric name or citation.
 - Do not run Superpowers brainstorming and `/impeccable shape` in the same session; both try to
   lead planning.
+
+## Where things are (17 November 2026)
+
+- `PRODUCT.md` is the site's product record (Impeccable `init`): who the site is for, the words it
+  uses, what it must never do. Read it before any work in `web/`.
+- The site's first page reads `web/public/data/site.json`, written by `telephone export-site` and
+  committed. The older technical pages live under `/lab` and are not linked from the published
+  site.
+- Experiments that need no key: `exp01` and `exp07`, measured with `telephone detail-test` and
+  `telephone place-test`. `data/places.yaml` was fixed before any score was seen: never edit a
+  line-up or a ladder, only add to its `changes` list.
+- `docs/dev-diary.md` records what failed and what changed. `docs/tutorial-17nov/summary.md` is
+  the latest summary to say out loud.
+- Cloud sessions can restart without warning. Commit and push after every step whose tests pass.
