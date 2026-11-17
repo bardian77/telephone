@@ -15,7 +15,7 @@ from .place import (
     score_place,
 )
 from .readability import face_count, ocr_stats
-from .structural import lpips_distance, ssim_score
+from .structural import lpips_distance, settled_at, ssim_score
 from .survival import compare_attributes, first_failure
 
 __all__ = [
@@ -40,6 +40,7 @@ __all__ = [
     "score_ladder",
     "score_lineup",
     "score_place",
+    "settled_at",
     "ssim_score",
     "whole",
 ]

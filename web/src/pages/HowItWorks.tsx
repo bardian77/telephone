@@ -75,8 +75,9 @@ export default function HowItWorks({ site }: { site: Site | null }) {
         </dd>
         <dt>Change</dt>
         <dd>
-          Whether a pass still alters the picture. A journey counts as settled from the first pass that hands back what it was
-          given (in the files: <code translate="no">ssim_to_prev</code> of 1.000000).
+          Whether a pass still alters the picture. A journey counts as settled from the pass after which every pass hands
+          back what it was given (in the files: <code translate="no">ssim_to_prev</code> of 1.000000 for at least three
+          passes, to the end of the run). One pass that happens to change nothing does not count.
         </dd>
       </dl>
 

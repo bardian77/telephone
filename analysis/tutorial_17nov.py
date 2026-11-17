@@ -46,6 +46,7 @@ import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
 from telephone import paths  # noqa: E402
+from telephone.metrics import settled_at as settled  # noqa: E402
 
 ROOT = paths.project_root()
 SKILL = ROOT / ".claude" / "skills" / "scientific-visualization"
@@ -109,12 +110,10 @@ def series(chain: dict[int, dict], pick) -> tuple[list[int], list[float]]:
 
 
 def settled_at(chain: dict[int, dict]) -> int | None:
-    """The first pass whose SSIM to the pass before is 1 to six decimals."""
-    for g in sorted(chain):
-        v = (chain[g].get("metrics") or {}).get("ssim_to_prev")
-        if g and v is not None and round(v, 6) == 1.0:
-            return g
-    return None
+    """The pass from which no later pass changed the picture (telephone.metrics.settled_at)."""
+    last = max(chain)
+    prev = [(chain.get(g, {}).get("metrics") or {}).get("ssim_to_prev") for g in range(last + 1)]
+    return settled(prev)
 
 
 def save(fig, name: str, what: str, sources: list[str], alt: str) -> None:
@@ -211,7 +210,7 @@ def fig_settled(ledger) -> None:
         [str(t) for t in ticks if t <= last] + [f"not in\n{last} passes"],
     )
     ax.set_xlim(0, never_x + 3)
-    ax.set_xlabel("First pass that changed nothing (SSIM to the pass before = 1.000000)")
+    ax.set_xlabel("Pass from which nothing changed again (SSIM to the pass before = 1.000000)")
     ax.grid(axis="x", color="#dddddd", linewidth=0.8)
     handles, labels = legend_handles(journeys)
     for h in handles:

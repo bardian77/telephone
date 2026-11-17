@@ -42,7 +42,7 @@ One plain sentence for each word the rest of this README leans on.
 - **LPIPS**: a learned measure of how different two pictures look, trained on human judgements. 0 means identical.
 - **Fine detail**: how much pixel-to-pixel variation a picture has, as a share of what the same part of the original has at the same size. Measured by `telephone detail-test`, at the picture's own size.
 - **Place line-up**: for each photograph, a fixed list of 12 place names that includes the true one, written before any score was seen (`data/places.yaml`). CLIP scores how well each name matches the picture. The result is where the true name comes in the list and with what probability. It is a result about those names; it does not show that a machine knows the place.
-- **Settled**: a chain has settled from the first pass that hands back what it was given (SSIM to the pass before is 1.000000).
+- **Settled**: a chain has settled from the pass after which every pass hands back what it was given (SSIM to the pass before is 1.000000, for at least three passes to the end of the run).
 - **Mock provider**: a fake stand-in that costs nothing, used by the tests, CI and `--mock`. Its output is a simulation, not a result, and is filed under `<experiment>-mock`.
 
 ## Measurement

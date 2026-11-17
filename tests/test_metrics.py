@@ -254,3 +254,38 @@ def test_real_clip_only_sees_the_central_square_of_a_picture():
     seen = embedder.preprocess(wide)
     assert tuple(seen.shape) == (3, 224, 224)
     assert bool((seen == embedder.preprocess(wide.crop((112, 0, 336, 224)))).all())
+
+
+# -- has a chain stopped changing? ------------------------------------------------------------------
+
+
+def test_a_chain_is_settled_from_the_pass_after_which_nothing_changes_again():
+    from telephone.metrics import settled_at
+
+    #        g0    g1    g2    g3   g4   g5   g6
+    prev = [None, 0.91, 0.99, 1.0, 1.0, 1.0, 1.0]
+    assert settled_at(prev) == 3
+
+
+def test_one_pass_that_changes_nothing_is_not_settling_if_a_later_pass_changes_it_again():
+    from telephone.metrics import settled_at
+
+    # pass 2 happened to change nothing (a phone the same size as the app), pass 3 changed it again
+    prev = [None, 0.91, 1.0, 0.999982, 0.99999, 1.0, 0.99997]
+    assert settled_at(prev) is None
+
+
+def test_settling_too_close_to_the_end_to_be_sure_is_not_counted():
+    from telephone.metrics import settled_at
+
+    assert settled_at([None, 0.9, 0.95, 0.99, 1.0, 1.0]) is None  # only two quiet passes
+    assert settled_at([None, 0.9, 0.95, 1.0, 1.0, 1.0]) == 3  # three: counted
+    assert settled_at([None, 0.9, 0.95, 1.0, 1.0], quiet_passes=2) == 3
+
+
+def test_settled_reads_six_decimals_and_treats_a_missing_value_as_still_changing():
+    from telephone.metrics import settled_at
+
+    assert settled_at([None, 0.9, 0.9999996, 1.0, 0.99999999]) == 2  # 1.000000 to six decimals
+    assert settled_at([None, 0.9, 1.0, None, 1.0, 1.0, 1.0]) == 4
+    assert settled_at([None]) is None and settled_at([]) is None

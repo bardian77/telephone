@@ -32,6 +32,7 @@ from .experiments import MOCK_SUFFIX
 from .export import _private_stems
 from .imageio import fit_within, from_bytes, media_type_of, sha256_bytes, to_jpeg_bytes
 from .ledger import Ledger
+from .metrics.structural import settled_at
 from .models import GenerationRecord
 from .render import image_of, type_of, variant_of
 
@@ -209,9 +210,8 @@ def export_site(
             "place_prob": column(_picker(place_rows, "prob")),
             "place_rank": column(_picker(place_rows, "rank")),
         }
-        # settled: the first pass after which the picture no longer changes (SSIM to the pass
-        # before is 1 to six decimals)
-        settled = next((g for g, v in enumerate(series["ssim_to_prev"]) if g and v == 1.0), None)
+        # settled: the pass from which no later pass changes the picture (see settled_at)
+        settled = settled_at(series["ssim_to_prev"])
         photo["journeys"][variant] = {
             "chain_id": chain_id,
             "generations": last,

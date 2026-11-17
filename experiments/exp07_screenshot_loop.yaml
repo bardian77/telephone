@@ -18,8 +18,11 @@ description: >
   variant was added to test the idea that follows from that: a loop only keeps decaying when
   something varies from pass to pass.
 
-  A chain counts as settled from the first generation whose SSIM to the previous generation is
-  1.000000, to six decimals. Files that are the same byte for byte are not the test. In
+  A chain counts as settled from the first generation after which every generation's SSIM to the
+  one before it is 1.000000, to six decimals, for at least three generations to the end of the
+  run. One quiet pass in the middle is not settling: in the many-phones chain a phone the same
+  size as the app changes nothing, and the next phone changes the picture again. Files that are
+  the same byte for byte are not the test. In
   experiment 1's Instagram chain the lake and Seddon House photographs wrote a new file on all
   20 passes, although that number was 1.000000 from pass 5.
 

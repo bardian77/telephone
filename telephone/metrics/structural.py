@@ -46,6 +46,25 @@ def _ssim_global(a: np.ndarray, b: np.ndarray) -> float:
     )
 
 
+def settled_at(ssim_to_prev: list[float | None], quiet_passes: int = 3) -> int | None:
+    """The pass from which a chain has stopped changing, or None if it has not.
+
+    `ssim_to_prev[g]` is generation g's SSIM to the generation before it. A pass is quiet when
+    that is 1 to six decimals. A chain is settled from the first pass after which every pass to
+    the end is quiet, and only when there are at least `quiet_passes` of them; with fewer it may
+    only be pausing. One quiet pass in the middle does not count: in the many-phones chain a
+    phone the same size as the app changes nothing, and the next phone changes the picture again.
+    A missing value counts as not quiet.
+    """
+    quiet = [v is not None and round(v, 6) == 1.0 for v in ssim_to_prev]
+    start = len(quiet)
+    while start > 1 and quiet[start - 1]:
+        start -= 1
+    if start >= len(quiet) or len(quiet) - start < quiet_passes:
+        return None
+    return start
+
+
 _lpips_model = None
 
 
