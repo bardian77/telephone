@@ -198,6 +198,7 @@ export default function Story({ site }: { site: Site }) {
   const reference = passes[1]?.width ?? 1080
   const lines = journeys.map((j) => ({ id: j.id, values: (photo.journeys[j.id].series.detail_kept ?? []).map((v) => (v == null ? null : Math.min(1, v))) }))
   const found = foundFor(photo)
+  const hasLine = lines.some((l) => l.values.some((v, i) => i > 0 && v != null)) // measured at all?
   const enlarged = photo.width < 1080
 
   function moveLoupe(e: React.MouseEvent<HTMLImageElement>) {
@@ -300,7 +301,7 @@ export default function Story({ site }: { site: Site }) {
         {found.map((s) => <p key={s}>{s}</p>)}
         {enlarged ? (
           <p className="muted">This photograph is only {photo.width} pixels wide, smaller than the app’s size. The app enlarges it, so its fine detail cannot be compared fairly and it has no line below.</p>
-        ) : (
+        ) : !hasLine ? null : (
           <>
             <h3>Fine detail left, pass by pass</h3>
             <DetailLine lines={lines} selected={chosen.id} current={p.pass} label={`Share of fine detail left in ${meta.name} over ${journey.generations} passes`} />

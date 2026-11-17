@@ -94,9 +94,13 @@ re-run from the repository. Nothing is an illustration of what might happen.
   `docs/BRIEF.md`.
 - Experiment 1 (re-upload only), saved in `data/results/exp01_compression.jsonl`: all the change
   happens on the first upload, then the loop sits still.
-- The screenshot-and-forward loop (`exp07_screenshot_loop`) and the place line-up
-  (`data/places.yaml`, `telephone place-test`) were being built and run on 17 November 2026. Use
-  their saved results once they exist; do not describe results that have not been saved.
+- The screenshot-and-forward loop (`exp07_screenshot_loop`), run on 17 November 2026 on all six
+  photographs: five journeys of 40 passes each, saved in `data/results/exp07_screenshot_loop.jsonl`
+  with the fine-detail numbers (`..._detail.jsonl`) and the place line-up (`..._place.jsonl`).
+- What the page shows is `web/public/data/site.json` and the pictures beside it, written by
+  `telephone export-site`. Every picture is the pipeline's own output file, byte for byte.
+- `docs/dev-diary.md` and `docs/tutorial-17nov/summary.md` say what was found and what failed.
+  Do not describe results that have not been saved.
 - No machine captions, no redrawn images, no survival-form answers, no author captions. Do not
   invent any of them.
 
