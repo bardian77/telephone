@@ -46,7 +46,9 @@ main p a, main li a, footer a { text-decoration: underline; }
 ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
 :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
 code, .mono { font-family: var(--mono); font-size: 0.9em; }
-h1, h2, h3 { line-height: 1.2; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 0.5rem; letter-spacing: -0.01em; text-wrap: balance; }
+html { -webkit-tap-highlight-color: transparent; }
+button, label, a, summary { touch-action: manipulation; }
 h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
 h2 { font-size: 1.25rem; margin-top: 2rem; }
 h3 { font-size: 1rem; }
@@ -180,7 +182,8 @@ button:active:not(:disabled) { transform: scale(0.97); }
 .row.gone .state::before { height: 2px; border-radius: 0; }
 
 .closer { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-.loupe { flex: 0 0 auto; width: 220px; height: 220px; max-width: 60vw; border: 1px solid var(--line); border-radius: 8px; background-color: var(--surface-2); background-repeat: no-repeat; }
+.loupe { flex: 0 0 auto; width: 220px; height: 220px; max-width: 60vw; padding: 0; border: 1px solid var(--line); border-radius: 8px; background-color: var(--surface-2); background-repeat: no-repeat; cursor: default; }
+.loupe:active:not(:disabled) { transform: none; }
 .loupe.cut { display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; color: var(--text-2); font-size: 0.9rem; }
 @media (max-width: 520px) { .closer { flex-direction: column; } }
 

@@ -153,10 +153,10 @@ export default function TryYourOwn() {
       <div className="try-controls">
         <label className="file">
           <span>Choose a photo</span>
-          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" name="photo" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
         <label className="check">
-          <input type="checkbox" checked={screenshot} onChange={(e) => setScreenshot(e.target.checked)} />
+          <input type="checkbox" name="screenshot" checked={screenshot} onChange={(e) => setScreenshot(e.target.checked)} />
           Screenshot it before each upload
         </label>
       </div>

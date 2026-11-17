@@ -59,8 +59,8 @@ export default function HowItWorks({ site }: { site: Site | null }) {
         <dt>Fine detail</dt>
         <dd>
           How much pixel-to-pixel variation the picture has, as a share of what the same part of the original has when it is
-          resized once to the same size. In the results files this is <code>detail_kept</code>, and it is read next to{' '}
-          <code>ssim_native</code>, a standard similarity score made at the picture’s own size. What it cannot show: JPEG saving
+          resized once to the same size. In the results files this is <code translate="no">detail_kept</code>, and it is read next to{' '}
+          <code translate="no">ssim_native</code>, a standard similarity score made at the picture’s own size. What it cannot show: JPEG saving
           leaves faint square blocks, and those count as detail, so the number can flatter a heavily compressed picture.
         </dd>
         <dt>Frame</dt>
@@ -76,7 +76,7 @@ export default function HowItWorks({ site }: { site: Site | null }) {
         <dt>Change</dt>
         <dd>
           Whether a pass still alters the picture. A journey counts as settled from the first pass that hands back what it was
-          given (in the files: <code>ssim_to_prev</code> of 1.000000).
+          given (in the files: <code translate="no">ssim_to_prev</code> of 1.000000).
         </dd>
       </dl>
 

@@ -27,7 +27,7 @@ export default function App() {
       <a className="skip" href="#main">Skip to the page</a>
       <div className="shell">
         <header className="top">
-          <NavLink to="/" className="brand">Telephone</NavLink>
+          <NavLink to="/" className="brand" translate="no">Telephone</NavLink>
           <nav aria-label="Pages">
             <NavLink to="/" end>The photographs</NavLink>
             <NavLink to="/how">How it works</NavLink>
@@ -49,7 +49,7 @@ export default function App() {
         <footer>
           Bardia Nasab · 5IMAG022W The Networked Photograph ·{' '}
           <a href="https://github.com/bardian77/telephone">the code and every result</a>
-          {site ? ` · pictures published ${new Date(site.generated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}
+          {site ? ` · pictures published ${new Intl.DateTimeFormat(undefined, { dateStyle: 'long' }).format(new Date(site.generated_at))}` : ''}
         </footer>
       </div>
     </HashRouter>

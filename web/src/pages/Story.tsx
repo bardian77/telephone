@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import DetailLine from '../components/DetailLine'
 import TryYourOwn from '../components/TryYourOwn'
 import { JOURNEYS, PHOTOS, dataUrl, kb, percent, shortPlace, type Journey, type Site, type SitePass, type SitePhoto } from '../site'
@@ -18,10 +18,26 @@ function inPicture(p: SitePass, photo: SitePhoto, f: Focus) {
   return { u, v, across: (x1 - x0) / photo.width, cut: u < 0 || u > 1 || v < 0 || v > 1 }
 }
 
-function Loupe({ p, photo, focus, reference }: { p: SitePass; photo: SitePhoto; focus: Focus; reference: number }) {
+type LoupeProps = { p: SitePass; photo: SitePhoto; focus: Focus; reference: number; onNudge: (dx: number, dy: number) => void; onReset: () => void }
+
+function Loupe({ p, photo, focus, reference, onNudge, onReset }: LoupeProps) {
   if (!p.width || !p.height) return null
+  // arrow keys move the close-up, so it does not depend on clicking the photograph
+  const keys: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const move = keys[e.key]
+    if (!move) return
+    e.preventDefault()
+    onNudge(move[0] * 0.03, move[1] * 0.03)
+  }
   const { u, v, across, cut } = inPicture(p, photo, focus)
-  if (cut) return <div className="loupe cut"><span>This spot has been cropped out of the frame.</span></div>
+  if (cut) {
+    return (
+      <button type="button" className="loupe cut" onKeyDown={onKeyDown} onClick={onReset}>
+        This spot has been cropped out of the frame.
+      </button>
+    )
+  }
   // Show the same piece of the scene at every pass. At pass 1 that piece is LOUPE pixels of the
   // file, drawn one to one.
   const shareOfPicture = LOUPE / reference / across
@@ -29,9 +45,12 @@ function Loupe({ p, photo, focus, reference }: { p: SitePass; photo: SitePhoto; 
   const bgH = bgW * (p.height / p.width)
   const pos = (frac: number, size: number) => Math.min(0, Math.max(LOUPE - size, LOUPE / 2 - frac * size))
   return (
-    <div
+    <button
+      type="button"
       className="loupe"
-      aria-hidden="true"
+      aria-label="Close-up of the photograph. Arrow keys move it. Press Enter to go back to the first spot."
+      onKeyDown={onKeyDown}
+      onClick={onReset}
       style={{ backgroundImage: `url(${dataUrl(p.img)})`, backgroundSize: `${bgW}px ${bgH}px`, backgroundPosition: `${pos(u, bgW)}px ${pos(v, bgH)}px` }}
     />
   )
@@ -129,18 +148,24 @@ export default function Story({ site }: { site: Site }) {
     () => PHOTOS.map((meta) => ({ meta, photo: site.photos.find((p) => p.stem === meta.stem) })).filter((x): x is { meta: (typeof PHOTOS)[number]; photo: SitePhoto } => !!x.photo),
     [site],
   )
-  const [stem, setStem] = useState(photos[0]?.photo.stem)
-  const [journeyId, setJourneyId] = useState('screenshot_many_phones')
-  const [index, setIndex] = useState(0)
-  const [focus, setFocus] = useState<Focus>(() => ({ x: photos[0]?.meta.focus[0] ?? 0.5, y: photos[0]?.meta.focus[1] ?? 0.5 }))
-
-  const current = photos.find((x) => x.photo.stem === stem) ?? photos[0]
+  const [params, setParams] = useSearchParams()
+  const current = photos.find((x) => x.photo.stem === params.get('photo')) ?? photos[0]
   const journeys = JOURNEYS.filter((j) => current?.photo.journeys[j.id])
-  const chosen = journeys.find((j) => j.id === journeyId) ?? journeys[0]
+  const chosen = journeys.find((j) => j.id === (params.get('journey') ?? 'screenshot_many_phones')) ?? journeys[0]
   const journey = current && chosen ? current.photo.journeys[chosen.id] : undefined
   const passes = journey?.passes ?? []
-  const p = passes[Math.min(index, passes.length - 1)]
+  const index = Math.max(0, passes.findIndex((s) => String(s.pass) === (params.get('pass') ?? '0')))
+  const p = passes[index]
   const next = passes[index + 1]
+  const go = (change: { photo?: string; journey?: string; pass?: number }) => {
+    const to = { photo: current?.photo.stem ?? '', journey: chosen?.id ?? '', pass: p?.pass ?? 0, ...change }
+    setParams({ photo: to.photo, journey: to.journey, pass: String(to.pass) }, { replace: true })
+  }
+  const setIndex = (i: number) => go({ pass: passes[i]?.pass ?? 0 })
+  const firstSpot = (): Focus => ({ x: current?.meta.focus[0] ?? 0.5, y: current?.meta.focus[1] ?? 0.5 })
+  const [focus, setFocus] = useState<Focus>(firstSpot)
+  const stem = current?.photo.stem
+  useEffect(() => setFocus(firstSpot()), [stem]) // a new photograph starts at its own spot
 
   useEffect(() => {
     if (next) new Image().src = dataUrl(next.img) // have the next picture ready
@@ -176,7 +201,7 @@ export default function Story({ site }: { site: Site }) {
           <legend>What happens to it</legend>
           {journeys.map((j) => (
             <label key={j.id} className={j.id === chosen.id ? 'on' : ''}>
-              <input type="radio" name="journey" checked={j.id === chosen.id} onChange={() => { setJourneyId(j.id); setIndex(0) }} />
+              <input type="radio" name="journey" checked={j.id === chosen.id} onChange={() => go({ journey: j.id, pass: 0 })} />
               {j.label}
             </label>
           ))}
@@ -192,6 +217,7 @@ export default function Story({ site }: { site: Site }) {
                 alt={`${meta.alt} ${p.pass === 0 ? 'The original.' : `After ${p.pass} ${p.pass === 1 ? 'pass' : 'passes'}.`}`}
                 width={p.width ?? undefined}
                 height={p.height ?? undefined}
+                fetchPriority="high"
                 onClick={moveLoupe}
               />
               <span className="tag">{p.pass === 0 ? 'The original' : `Pass ${p.pass} of ${journey.generations}`}</span>
@@ -223,8 +249,15 @@ export default function Story({ site }: { site: Site }) {
               ))}
             </dl>
             <div className="closer">
-              <Loupe p={p} photo={photo} focus={focus} reference={reference} />
-              <p className="small muted">Look closer. This is the same spot at every pass. Click the photograph to look somewhere else.</p>
+              <Loupe
+                p={p}
+                photo={photo}
+                focus={focus}
+                reference={reference}
+                onNudge={(dx, dy) => setFocus((f) => ({ x: Math.min(1, Math.max(0, f.x + dx)), y: Math.min(1, Math.max(0, f.y + dy)) }))}
+                onReset={() => setFocus(firstSpot())}
+              />
+              <p className="small muted">Look closer. This is the same spot at every pass. To look somewhere else, click the photograph, or select the close-up and use the arrow keys.</p>
             </div>
           </div>
         </div>
@@ -234,8 +267,8 @@ export default function Story({ site }: { site: Site }) {
         <h2>Six photographs of mine</h2>
         <div className="picker">
           {photos.map(({ photo: ph, meta: m }) => (
-            <button key={ph.stem} className={ph.stem === photo.stem ? 'current' : ''} aria-pressed={ph.stem === photo.stem} onClick={() => { setStem(ph.stem); setIndex(0); setFocus({ x: m.focus[0], y: m.focus[1] }) }}>
-              <img src={dataUrl(ph.thumb)} alt={m.alt} loading="lazy" />
+            <button key={ph.stem} className={ph.stem === photo.stem ? 'current' : ''} aria-pressed={ph.stem === photo.stem} onClick={() => go({ photo: ph.stem, pass: 0 })}>
+              <img src={dataUrl(ph.thumb)} alt="" width={320} height={240} loading="lazy" />
               <span>{m.name}</span>
             </button>
           ))}

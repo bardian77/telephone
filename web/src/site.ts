@@ -128,10 +128,15 @@ export const JOURNEYS: Array<{ id: string; label: string; says: string }> = [
   },
 ]
 
-export const kb = (bytes: number | null | undefined) =>
-  bytes == null ? null : bytes >= 1_000_000 ? `${(bytes / 1_000_000).toFixed(1)} MB` : `${Math.round(bytes / 1000)} kB`
+const whole = new Intl.NumberFormat('en', { maximumFractionDigits: 0 })
+const oneDecimal = new Intl.NumberFormat('en', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const asPercent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 })
 
-export const percent = (v: number | null | undefined) => (v == null ? null : `${Math.round(v * 100)}%`)
+/** A file size in words. The space before the unit does not break across lines. */
+export const kb = (bytes: number | null | undefined) =>
+  bytes == null ? null : bytes >= 1_000_000 ? `${oneDecimal.format(bytes / 1_000_000)}\u00a0MB` : `${whole.format(bytes / 1000)}\u00a0kB`
+
+export const percent = (v: number | null | undefined) => (v == null ? null : asPercent.format(v))
 
 /** "Bologna, Italy" -> "Bologna"; "the Dolomites, Italy" -> "the Dolomites". */
 export const shortPlace = (place: string) => place.split(',')[0]
