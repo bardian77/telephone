@@ -2,7 +2,9 @@
 #
 # Read by `telephone place-test` (the code is telephone/metrics/place.py). For every photograph a
 # machine (the CLIP model) is asked which candidate in a line-up matches the picture best. If the
-# true place comes first, the machine still recognises where the photograph was taken.
+# true place comes first, that name matched the picture better than the other eleven. That is a
+# result about those twelve names. It is always read together with its probability, and it does
+# not show that the machine knows the place.
 #
 # Rules for this file
 #
@@ -10,6 +12,11 @@
 #    against it. A line-up or a ladder is not changed after a score has been seen. If a genuine
 #    mistake has to be corrected, the correction is added to the `changes` list at the bottom,
 #    with its date, what changed and why.
+#    What is registered: the line-ups, the ladders, the sentences the names are put into and the
+#    scale (TEMPLATES and LOGIT_SCALE in telephone/metrics/place.py). From the correction of
+#    2026-11-17 on, also the model build (ViT-B/32 with OpenAI's weights and the QuickGELU
+#    activation they were trained with) and what the model is shown of a picture (the central
+#    square, at 224 px). A test holds a fingerprint of the first group and fails if it changes.
 # 2. Fairness. Every candidate in a line-up is a bare place name, written the same way as the
 #    others ("Name, Region"), and put into the same sentences (TEMPLATES in
 #    telephone/metrics/place.py, for example "a photo taken in {place}"). No candidate carries a
@@ -99,6 +106,7 @@ photographs:
   # Crop of the lake photo: a column reflected in rippled water. Nothing in it says where it is,
   # so it is expected NOT to be recognised. It stays in as the negative control: if this crop
   # scores as well as the full photographs, the instrument is reading something other than place.
+  # Result on 2026-11-17: the prediction failed. See the second entry under `changes`.
   abstract_barbican_reflection_01:
     place: "Barbican, London"
     lineup: modernist_estates
@@ -118,4 +126,26 @@ photographs:
     ladder: ["the Dolomites, Italy", "the Alps", "Europe", "the mountains"]
 
 # Corrections made after the first score was seen. Each one: date, what changed, why.
-changes: []
+changes:
+  - date: "2026-11-17"
+    what: >-
+      The calibration was scored a second time, on a correctly built model. No line-up, ladder or
+      wording was changed.
+    why: >-
+      The first calibration ran on a CLIP network built with the wrong activation function for its
+      weights (GELU, where OpenAI's weights were trained with QuickGELU; the library only warned).
+      The build was corrected and a test now fails if it happens again. Both sets of scores have
+      been seen. The first is kept in docs/evidence/2026-11-17_place_calibration_wrong_clip_build.json
+      and the second is data/results/place_calibration.json. Nothing in this file was edited in
+      response to either.
+  - date: "2026-11-17"
+    what: >-
+      The abstract reflection crop is no longer described as a clean negative control. Its entry
+      and its line-up are unchanged.
+    why: >-
+      It was predicted not to be placeable. On the corrected model its true place came first of 12
+      with probability 0.5995, about the same as the larches photograph (0.5951). On the mis-built
+      model it had come second with probability 0.1035, which looked like the prediction holding.
+      The prediction failed and is kept as a failed prediction. Either the crop carries more of
+      the place than I thought, or the score responds to something other than place. This
+      measurement cannot tell which.
