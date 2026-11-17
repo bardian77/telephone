@@ -706,6 +706,107 @@ def place_test(
         _place_experiment(experiment, entries, places_path, out)
 
 
+LOCAL_KINDS = {"platform", "screenshot"}  # stations that scale, crop and re-save one picture
+
+
+@app.command("detail-test")
+def detail_test(
+    experiment: Annotated[
+        str, typer.Argument(help="Experiment id in the ledger, e.g. exp07_screenshot_loop")
+    ],
+    out: Path = typer.Option(None, help="Default: data/results/<experiment>_detail.jsonl"),
+):
+    """How much fine detail is left? Each generation at its own size, against the same part of
+    the original. No model, no key."""
+    # Per generation: SSIM at the picture's own size, the share of fine detail kept and the share
+    # of the frame kept (telephone/metrics/detail.py says what each can and cannot show). Only
+    # for chains made of uploads and screenshots; a redrawn picture has no "same part".
+    from .export import _private_stems
+    from .imageio import from_bytes, sha256_bytes
+    from .ledger import Ledger
+    from .metrics.detail import METHOD, box_after, detail_scores, whole
+    from .metrics.place import round_floats
+    from .render import image_of, variant_of
+
+    s = get_settings()
+    if not s.ledger_path.exists():
+        _fail_stderr("ledger: empty, nothing to measure", code=1)
+    led = Ledger(s.ledger_path)
+    known = [row["experiment_id"] for row in led.experiments()]
+    if experiment not in known:
+        matches = [k for k in known if k.startswith(experiment)]
+        if len(matches) != 1:
+            _fail_stderr(f"No experiment {experiment!r} in the ledger. Known: {known}", code=1)
+        experiment = matches[0]
+
+    chains: dict[tuple[str, int], list] = {}
+    for rec in led.experiment(experiment):
+        chains.setdefault((rec.chain_id, rec.repeat), []).append(rec)
+
+    def file_of(rec) -> Path | None:
+        """The generation's picture, if it is there and is the one the row recorded."""
+        path = paths.resolve(rec.output_path) if rec.output_path else None
+        if path is None or not path.is_file():
+            return None
+        return path if sha256_bytes(path.read_bytes()) == rec.output_sha else None
+
+    private = _private_stems()
+    rows = []
+    redrawn: list[str] = []  # chains with a station that redraws or re-photographs the picture
+    private_chains = no_original = stopped_early = 0
+    for (chain_id, repeat), recs in sorted(chains.items()):
+        recs.sort(key=lambda r: r.generation)
+        stem = image_of(chain_id)
+        kinds = {k.strip() for k in recs[0].station_sequence.split(">")}
+        if stem in private:
+            private_chains += 1
+            continue
+        if not kinds <= LOCAL_KINDS:
+            redrawn.append(variant_of(chain_id))
+            continue
+        first = file_of(recs[0])
+        if recs[0].generation != 0 or first is None:
+            no_original += 1
+            continue
+        console.print(f"  {chain_id} r{repeat}", style="dim", markup=False)
+        original = first.read_bytes()
+        box = whole(*from_bytes(original).size)
+        for rec in recs:
+            path = file_of(rec)
+            if rec.error or path is None:
+                stopped_early += 1  # the box cannot be followed past a pass that is missing
+                break
+            box = box_after(box, rec.stations)
+            rows.append(
+                {
+                    "experiment_id": rec.experiment_id,
+                    "chain_id": rec.chain_id,
+                    "image": stem,
+                    "variant": variant_of(rec.chain_id),
+                    "repeat": rec.repeat,
+                    "generation": rec.generation,
+                    "output_sha": rec.output_sha,
+                    "config_sha": rec.config_sha,
+                    **round_floats(detail_scores(path.read_bytes(), original, box)),
+                    "method": METHOD,
+                }
+            )
+    names = f" ({', '.join(sorted(set(redrawn)))})" if redrawn else ""
+    left_out = (
+        f"left out: {len(redrawn)} chain{'' if len(redrawn) == 1 else 's'} with a station that "
+        f"redraws or re-photographs the picture{names}, {private_chains} private, "
+        f"{no_original} without their original, {stopped_early} that stopped early"
+    )
+    if not rows:
+        _fail_stderr(f"Nothing to measure in {experiment}; {left_out}.", code=1)
+    rows.sort(key=lambda r: (r["chain_id"], r["repeat"], r["generation"]))
+    path = out or s.results_dir / f"{experiment}_detail.jsonl"
+    lines = [json.dumps(row, sort_keys=True, ensure_ascii=False) for row in rows]
+    _write_text(path, "\n".join(lines) + "\n")
+    console.print(f"wrote {len(rows)} rows to {path}")
+    console.print(left_out, style="dim", soft_wrap=True, markup=False)
+
+
 @app.command("make-fixtures")
 def make_fixtures(
     folder: Path = typer.Option(None, help="Default: data/fixtures (only exp00 reads it)"),

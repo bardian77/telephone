@@ -7,10 +7,16 @@ description: >
   loop sat still. Pete Ashton's reposts were screenshots, so his picture was redrawn on a phone
   screen before every upload. Here every generation ends with one upload to Instagram (longest
   side 1080 px, JPEG quality 72) and the variants differ in the step before it: no screenshot, a
-  screenshot cropped exactly (resampled in one of two ways), or a screenshot cropped a few
-  pixels off. The screenshot station scales the picture to fit a 1170 x 2532 phone screen and
+  screenshot cropped exactly (resampled in one of two ways), a screenshot cropped exactly on a
+  different phone each pass, or a screenshot cropped a few pixels off. The screenshot station
+  scales the picture to fit a phone screen (1170 x 2532 unless the variant says otherwise) and
   saves a PNG. Expectation: the reupload chain stops changing after the first few passes. If
   resampling is what makes the damage add up, the screenshot chains keep changing.
+
+  In trial runs before the full run, the exact-crop chains stopped changing too, a little later
+  than the control. A fixed step repeated seems to settle, whatever the step is. The many-phones
+  variant was added to test the idea that follows from that: a loop only keeps decaying when
+  something varies from pass to pass.
 
   A chain counts as settled from the first generation whose SSIM to the previous generation is
   1.000000, to six decimals. Files that are the same byte for byte are not the test. In
@@ -20,7 +26,10 @@ description: >
   SSIM in this project is measured on copies of the two pictures resized to 512 px wide, so
   loss of detail finer than that does not show in it. A small SSIM gap between two variants is
   therefore no evidence that the fine detail is intact, and "settled" means the picture has
-  stopped changing at that scale.
+  stopped changing at that scale. The measure to read for fine detail is "telephone detail-test
+  exp07": it compares every generation at its own size with the same part of the original,
+  resampled once, and it follows the crop, so for the loose-crop chain it tells lost detail
+  apart from lost frame.
 
   How much an exact-crop screenshot costs depends on how the picture is resampled when it is
   drawn on the screen. The station offers bicubic and bilinear. How a real phone does it is not
@@ -76,6 +85,21 @@ variants:
       tries of the cropping. The 460 px abstract crop is enlarged by the screenshot here too.
     stations:
       - { kind: screenshot, params: { crop_jitter_px: 6 } }
+      - { kind: platform, params: { preset: instagram } }
+  - name: screenshot_many_phones
+    notes: >-
+      Screenshot with an exact crop on a different phone every pass, then upload. The screen
+      sizes are typical phone screenshot sizes and are approximate; they stand for "a different
+      phone each time". Which phone a pass gets is fixed by the seed and the pass number. The
+      resampling changes from pass to pass and the framing does not, so this variant tests
+      whether variation is what makes damage add up, without the reframing of the loose crop.
+      On the 1080 px wide screen a picture that is already 1080 px wide is shown as it is, with
+      no resampling. The 460 px abstract crop is enlarged here too.
+    stations:
+      - kind: screenshot
+        params:
+          crop_jitter_px: 0
+          screens: [[1170, 2532], [1179, 2556], [1290, 2796], [1284, 2778], [1206, 2622], [1320, 2868], [1080, 2400], [1440, 3200]]
       - { kind: platform, params: { preset: instagram } }
 references:
   - "Pete Ashton, I Am Sitting in Stagram (2015)"

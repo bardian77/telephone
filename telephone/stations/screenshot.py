@@ -11,7 +11,8 @@ screenshot, so the picture was resampled before each upload.
 With an exact crop (`crop_jitter_px` 0) every pass resamples the picture in the same way,
 between the same two pixel grids. With a loose crop (`crop_jitter_px` N) up to N pixels are
 lost from each edge, a different few every generation, so the grid lands somewhere slightly
-different every pass and the picture is slowly reframed.
+different every pass and the picture is slowly reframed. With a list of `screens` each pass is
+shown on a different phone, so the resampling changes every pass and the framing does not.
 """
 
 from __future__ import annotations
@@ -30,6 +31,9 @@ DEFAULTS: dict[str, Any] = {
     "screen_height": 2532,
     "crop_jitter_px": 0,  # 0: the crop is exact. N: up to N pixels are lost from each edge
     "resample": "bicubic",
+    # None: always the one screen above. A list of [width, height]: each generation is shown on
+    # one of them, picked by the seed and the generation ("a different phone every time").
+    "screens": None,
 }
 RESAMPLE = {"bicubic": Image.Resampling.BICUBIC, "bilinear": Image.Resampling.BILINEAR}
 EDGES = ("left", "top", "right", "bottom")
@@ -67,7 +71,45 @@ def resolve_params(params: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("screenshot station: screen_width and screen_height must be at least 1")
     if p["crop_jitter_px"] < 0:
         raise ValueError("screenshot station: crop_jitter_px cannot be negative")
+    if p["screens"] is not None:
+        p["screens"] = _screens(p["screens"])
     return p
+
+
+def _screens(value: Any) -> list[list[int]]:
+    """A list of screens as [[width, height], ...], or an error that names the setting."""
+    wrong = ValueError(
+        "screenshot station: screens must be a list of [width, height] pairs of whole numbers "
+        f"of at least 1, not {value!r}"
+    )
+    if not isinstance(value, list | tuple) or not value:
+        raise wrong
+    out = []
+    for pair in value:
+        if not isinstance(pair, list | tuple) or len(pair) != 2:
+            raise wrong
+        try:
+            w, h = (_whole_number("screens", side) for side in pair)
+        except ValueError:
+            raise wrong from None
+        if w < 1 or h < 1:
+            raise wrong
+        out.append([w, h])
+    return out
+
+
+def screen_for(seed: int | None, generation: int, p: dict[str, Any]) -> tuple[int, int]:
+    """The screen this generation is shown on.
+
+    With a list of screens, one is picked by a hash of the seed and the generation, so a chain
+    meets the same phones in the same order on every machine. Without a list it is always
+    screen_width x screen_height.
+    """
+    if not p["screens"]:
+        return p["screen_width"], p["screen_height"]
+    pick = int(stable_hash(["screenshot screen", seed, generation]), 16) % len(p["screens"])
+    w, h = p["screens"][pick]
+    return w, h
 
 
 def screen_size(width: int, height: int, screen_width: int, screen_height: int) -> tuple[int, int]:
@@ -123,26 +165,32 @@ class ScreenshotStation(Station):
         return crop_offsets(self.seed_for(ctx), ctx.generation, self.params["crop_jitter_px"])
 
     def cache_key(self, image_sha: str | None, ctx: StationContext) -> str:
-        """The usual key, plus the crop this generation asks for.
+        """The usual key, plus the crop and the screen this generation asks for.
 
         Without this, a later generation that happens to receive the same bytes as an earlier
-        one would be handed the earlier one's output, cut with the wrong crop. With an exact
-        crop the offsets are always zero, so generations still share the cache.
+        one would be handed the earlier one's output, cut with the wrong crop or drawn for the
+        wrong phone. With an exact crop and one screen both are always the same, so
+        generations still share the cache.
         """
         return StationCache.key(
             image_sha,
             self.cfg.kind,
             self.cfg.provider,
             self.cfg.model,
-            {**self.params, "crop": self.crop_for(ctx)},
+            {**self.params, "crop": self.crop_for(ctx), "screen": list(self.screen_for(ctx))},
             self.seed_for(ctx),
         )
+
+    def screen_for(self, ctx: StationContext) -> tuple[int, int]:
+        """The screen this generation is shown on (see screen_for above)."""
+        return screen_for(self.seed_for(ctx), ctx.generation, self.params)
 
     def _run(self, image: bytes, ctx: StationContext) -> StationResult:
         p = self.params
         img = from_bytes(image)
-        scale = min(p["screen_width"] / img.width, p["screen_height"] / img.height)
-        shown = screen_size(img.width, img.height, p["screen_width"], p["screen_height"])
+        screen_w, screen_h = self.screen_for(ctx)
+        scale = min(screen_w / img.width, screen_h / img.height)
+        shown = screen_size(img.width, img.height, screen_w, screen_h)
         img = img.resize(shown, RESAMPLE[p["resample"]])
         crop = clamp_crop(self.crop_for(ctx), *shown)
         img = img.crop(
@@ -154,10 +202,11 @@ class ScreenshotStation(Station):
             provider="local",
             model="pillow",
             params=dict(p),
-            # the seed only matters when the crop is loose
-            seed=self.seed_for(ctx) if p["crop_jitter_px"] > 0 else None,
+            # the seed only matters when the crop is loose or the phone changes
+            seed=self.seed_for(ctx) if (p["crop_jitter_px"] > 0 or p["screens"]) else None,
             usage=Usage(),
             raw={
+                "screen": [screen_w, screen_h],
                 "scale": scale,
                 "displayed_width": shown[0],
                 "displayed_height": shown[1],

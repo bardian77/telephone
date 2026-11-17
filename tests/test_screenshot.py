@@ -264,10 +264,12 @@ def test_the_record_says_what_the_screenshot_did(tmp_path):
         "screen_height": 844,
         "crop_jitter_px": 6,
         "resample": "bicubic",
+        "screens": None,  # one phone, the one above
     }
     assert rec.seed == 7  # the seed the crop was worked out from
     crop = crop_offsets(seed=7, generation=2, jitter=6)
     assert rec.raw == {
+        "screen": [390, 844],  # the phone this pass was shown on
         "scale": pytest.approx(390 / 360),
         "displayed_width": 390,
         "displayed_height": 260,
@@ -286,6 +288,7 @@ def test_the_record_of_an_exact_crop_has_no_seed_and_a_zero_crop(tmp_path):
         "screen_height": 2532,
         "crop_jitter_px": 0,
         "resample": "bicubic",
+        "screens": None,
     }
     assert res.record.seed is None  # nothing random happened
     assert res.record.raw["scale"] == pytest.approx(0.78)
@@ -481,13 +484,15 @@ EXP07 = "exp07_screenshot_loop"
 UPLOAD = {"kind": "platform", "params": {"preset": "instagram"}}
 
 
-def test_exp07_has_four_variants_that_differ_only_in_the_screenshot_step():
+def test_exp07_has_five_variants_that_differ_only_in_the_screenshot_step():
     exp = load_all()[EXP07]
     assert (exp.generations, exp.seed, exp.repeats) == (40, 7, 1)
     exact = {"kind": "screenshot", "params": {"crop_jitter_px": 0}}
     bilinear = {"kind": "screenshot", "params": {"crop_jitter_px": 0, "resample": "bilinear"}}
     loose = {"kind": "screenshot", "params": {"crop_jitter_px": 6}}
-    assert {v["name"]: v["stations"] for v in exp.variants} == {
+    stations = {v["name"]: v["stations"] for v in exp.variants}
+    phones = stations.pop("screenshot_many_phones")
+    assert stations == {
         "reupload": [UPLOAD],
         "screenshot": [exact, UPLOAD],
         # the same step with the station's other way of resampling: how much an exact-crop
@@ -495,6 +500,13 @@ def test_exp07_has_four_variants_that_differ_only_in_the_screenshot_step():
         "screenshot_bilinear": [bilinear, UPLOAD],
         "screenshot_loose_crop": [loose, UPLOAD],
     }
+    # a different phone every pass, with an exact crop: the resampling varies and the framing
+    # does not, so decay can be told apart from cropping
+    assert phones[1] == UPLOAD and phones[0]["kind"] == "screenshot"
+    assert phones[0]["params"]["crop_jitter_px"] == 0
+    screens = phones[0]["params"]["screens"]
+    assert len(screens) >= 6 and len({tuple(s) for s in screens}) == len(screens)
+    assert [1170, 2532] in screens
     assert "resampled" in exp.question
     assert any("Ashton" in ref for ref in exp.references)
     assert any("Steyerl" in ref for ref in exp.references)
@@ -558,6 +570,7 @@ def test_exp07_chains_build_and_cost_nothing(tmp_path):
         f"{EXP07}__screenshot__street_detail_01",
         f"{EXP07}__screenshot_bilinear__street_detail_01",
         f"{EXP07}__screenshot_loose_crop__street_detail_01",
+        f"{EXP07}__screenshot_many_phones__street_detail_01",
     ]
     assert all(c.generations == 40 and c.seed == 7 for c in chains)
     runner = ChainRunner(options=OFFLINE)  # no extractor, as with --no-extract
@@ -581,7 +594,7 @@ def test_exp07_dry_run_from_the_command_line_runs_nothing(tmp_path):
         app, ["run-experiment", "exp07", "--no-extract", "--dry-run", "--image", str(img)]
     )
     assert result.exit_code == 0, result.output
-    assert f"{EXP07}: 4 chains" in result.output
+    assert f"{EXP07}: 5 chains" in result.output
     assert "0.000" in result.output  # the estimated cost
     assert not (get_settings().runs_dir / EXP07).exists()
 
@@ -616,7 +629,7 @@ def test_exp07_rows_export_and_render(tmp_path):
     index = json.loads((tmp_path / "site" / "index.json").read_text())
     assert [e["id"] for e in index["experiments"]] == [EXP07]
     kinds = [[s["kind"] for s in v["stations"]] for v in index["experiments"][0]["variants"]]
-    assert kinds == [["platform"]] + [["screenshot", "platform"]] * 3
+    assert kinds == [["platform"]] + [["screenshot", "platform"]] * 4
     chain = json.loads((tmp_path / "site" / "chains" / f"{loose.chain_id}__r0.json").read_text())
     shot = chain["generations"][1]["stations"][0]
     assert shot["kind"] == "screenshot" and shot["params"]["crop_jitter_px"] == 6
@@ -701,3 +714,65 @@ def test_a_wrong_station_setting_in_run_chain_is_one_line(tmp_path, stations, na
     output = clean_failure(CliRunner().invoke(app, args))
     assert named_in_message in output
     assert not get_settings().ledger_path.exists() or not Ledger(get_settings().ledger_path).all()
+
+
+# -- a different phone every pass ------------------------------------------------------------------
+
+PHONES = [[390, 844], [393, 852], [430, 932], [360, 800]]
+
+
+def test_with_a_list_of_screens_each_generation_is_shown_on_one_of_them(tmp_path):
+    img = detailed_image((300, 200))
+    widths = set()
+    for generation in range(1, 13):
+        res = take_screenshot(tmp_path, img, {"screens": PHONES}, generation=generation)
+        w = from_bytes(res.image).size[0]
+        assert res.record.raw["screen"] in PHONES
+        # a 3:2 picture fills the width of every one of these phones
+        assert w == res.record.raw["screen"][0] == res.record.raw["displayed_width"]
+        widths.add(w)
+    assert len(widths) >= 3  # several phones are really used, not one
+
+
+def test_the_phone_is_the_same_for_the_same_seed_and_generation_and_varies_otherwise():
+    pick = screenshot.screen_for
+    p = screenshot.resolve_params({"screens": PHONES})
+    assert pick(7, 3, p) == pick(7, 3, p)
+    assert len({pick(7, g, p) for g in range(1, 30)}) == len(PHONES)
+    assert [pick(7, g, p) for g in range(1, 30)] != [pick(8, g, p) for g in range(1, 30)]
+    # without a list it is always the one screen
+    one = screenshot.resolve_params({})
+    assert {pick(7, g, one) for g in range(1, 30)} == {(1170, 2532)}
+
+
+def test_generations_shown_on_different_phones_do_not_share_a_cache_entry(tmp_path):
+    img = detailed_image((300, 200))
+    p = screenshot.resolve_params({"screens": PHONES})
+    g_a, g_b = next(
+        (a, b)
+        for a in range(1, 30)
+        for b in range(a + 1, 30)
+        if screenshot.screen_for(7, a, p) != screenshot.screen_for(7, b, p)
+    )
+    first = take_screenshot(tmp_path, img, {"screens": PHONES}, generation=g_a)
+    second = take_screenshot(tmp_path, img, {"screens": PHONES}, generation=g_b)
+    assert not second.record.cached
+    assert from_bytes(first.image).size != from_bytes(second.image).size
+
+
+@pytest.mark.parametrize(
+    "screens", [[], [[390]], [[390, 0]], [[390, 844.5]], "390x844", [[390, 844], "phone"]]
+)
+def test_a_list_of_screens_that_makes_no_sense_is_refused(screens):
+    with pytest.raises(ValueError, match="screens"):
+        screenshot.resolve_params({"screens": screens})
+
+
+def test_config_fingerprint_changes_with_the_list_of_screens():
+    def fp(params: dict) -> str:
+        upload = StationConfig(kind="platform", params=SMALL_INSTAGRAM)
+        cfg = small_chain("x", [StationConfig(kind="screenshot", params=params), upload])
+        return config_fingerprint(cfg, None, get_settings())
+
+    assert fp({"screens": PHONES}) != fp({})
+    assert fp({"screens": PHONES}) != fp({"screens": PHONES[:3]})
