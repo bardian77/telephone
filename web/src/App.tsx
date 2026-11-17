@@ -9,7 +9,9 @@ import { loadSite, type Site } from './site'
 /** Start each page at its top, as a normal link would. */
 function ScrollToTop() {
   const { pathname } = useLocation()
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  useEffect(() => {
+    window.scrollTo(0, 0) // in braces: an effect must not return what scrollTo returns
+  }, [pathname])
   return null
 }
 

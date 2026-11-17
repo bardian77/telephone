@@ -186,7 +186,9 @@ export default function Story({ site }: { site: Site }) {
   const firstSpot = (): Focus => ({ x: current?.meta.focus[0] ?? 0.5, y: current?.meta.focus[1] ?? 0.5 })
   const [focus, setFocus] = useState<Focus>(firstSpot)
   const stem = current?.photo.stem
-  useEffect(() => setFocus(firstSpot()), [stem]) // a new photograph starts at its own spot
+  useEffect(() => {
+    setFocus(firstSpot()) // a new photograph starts at its own spot
+  }, [stem])
 
   useEffect(() => {
     if (next) new Image().src = dataUrl(next.img) // have the next picture ready
