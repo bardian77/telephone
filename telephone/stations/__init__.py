@@ -7,9 +7,11 @@ from .extract import ExtractStation
 from .physical import MissingFrame, PhysicalStation
 from .platform import PRESETS, PlatformStation
 from .regenerate import RegenerateStation
+from .screenshot import ScreenshotStation
 
 REGISTRY: dict[str, type[Station]] = {
     "platform": PlatformStation,
+    "screenshot": ScreenshotStation,
     "caption": CaptionStation,
     "regenerate": RegenerateStation,
     "extract": ExtractStation,

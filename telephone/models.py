@@ -9,7 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-StationKind = Literal["platform", "caption", "regenerate", "extract", "physical"]
+StationKind = Literal["platform", "screenshot", "caption", "regenerate", "extract", "physical"]
 
 
 def now_iso() -> str:

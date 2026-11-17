@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import sys
+import types
+import warnings
+
 import pytest
 from PIL import ImageFilter
 
 from telephone.imageio import load_image, to_jpeg_bytes, to_png_bytes
 from telephone.metrics import (
+    ClipEmbedder,
+    MetricsUnavailable,
     compare_attributes,
     face_count,
     first_failure,
@@ -93,3 +99,95 @@ def test_first_failure():
     ]
     ff = first_failure(chain)
     assert ff["lighting"] == 1 and ff["mood"] == 3 and ff["objects"] is None
+
+
+# -- CLIP is built the way its weights were trained ------------------------------------------------
+
+
+def use_fake_open_clip(monkeypatch) -> list[dict]:
+    """Put stand-ins for open_clip and torch in place, so no weights and no network are needed.
+
+    The stand-in copies the one thing that matters here. OpenAI's weights were trained with an
+    activation called QuickGELU. open_clip builds the plain "ViT-B-32" network with GELU unless
+    it is asked for QuickGELU, and when the two do not match it only warns. Returns the list
+    that every request for a model is written to.
+    """
+    calls: list[dict] = []
+    activations = {True: type("QuickGELU", (), {}), False: type("GELU", (), {})}
+
+    class FakeModel:
+        def __init__(self, quick_gelu: bool):
+            self.quick_gelu = quick_gelu
+
+        def eval(self):
+            return self
+
+        def modules(self):
+            return [activations[self.quick_gelu]()]
+
+    def get_pretrained_cfg(model: str, tag: str) -> dict:
+        return {"quick_gelu": True} if tag == "openai" else {}
+
+    def create_model_and_transforms(model_name, pretrained=None, force_quick_gelu=False):
+        calls.append(
+            {"model_name": model_name, "pretrained": pretrained, "quick_gelu": force_quick_gelu}
+        )
+        built_quick = force_quick_gelu or model_name.endswith("-quickgelu")
+        trained_quick = bool(get_pretrained_cfg(model_name, pretrained).get("quick_gelu"))
+        if built_quick != trained_quick:
+            warnings.warn(
+                f"QuickGELU mismatch between final model config (quick_gelu={built_quick}) "
+                f"and pretrained tag '{pretrained}' (quick_gelu={trained_quick}).",
+                UserWarning,
+                stacklevel=2,
+            )
+        return FakeModel(built_quick), None, None
+
+    fake = types.SimpleNamespace(
+        create_model_and_transforms=create_model_and_transforms,
+        get_pretrained_cfg=get_pretrained_cfg,
+    )
+    monkeypatch.setitem(sys.modules, "open_clip", fake)
+    monkeypatch.setitem(sys.modules, "torch", types.SimpleNamespace(set_num_threads=lambda n: None))
+    monkeypatch.delenv("TELEPHONE_CLIP_MODEL", raising=False)
+    monkeypatch.delenv("TELEPHONE_CLIP_PRETRAINED", raising=False)
+    return calls
+
+
+def test_clip_is_built_with_the_activation_its_weights_were_trained_with(monkeypatch):
+    calls = use_fake_open_clip(monkeypatch)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # the mismatch warning would fail this test
+        embedder = ClipEmbedder()
+    assert calls == [{"model_name": "ViT-B-32", "pretrained": "openai", "quick_gelu": True}]
+    assert embedder.activation == "quickgelu"
+
+
+def test_clip_refuses_a_network_whose_activation_does_not_match_its_weights(monkeypatch):
+    use_fake_open_clip(monkeypatch)
+    # a QuickGELU network with weights that were not trained with it: the mismatch the other way
+    with pytest.raises(MetricsUnavailable, match="QuickGELU mismatch"):
+        ClipEmbedder("ViT-B-32-quickgelu", "laion2b_s34b_b79k")
+
+
+def test_clip_built_with_plain_gelu_for_weights_trained_that_way_says_so(monkeypatch):
+    calls = use_fake_open_clip(monkeypatch)
+    embedder = ClipEmbedder("ViT-B-32", "laion2b_s34b_b79k")
+    assert calls[0]["quick_gelu"] is False
+    assert embedder.activation == "gelu"
+
+
+@pytest.mark.slow
+def test_real_clip_is_built_with_quickgelu_and_without_a_mismatch_warning():
+    """Needs the CLIP weights, so it is skipped by default.
+
+    The real check behind the three tests above: with the installed open_clip, the default
+    model must come out with the activation OpenAI trained it with, and open_clip must have
+    nothing to warn about.
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings("error", message="QuickGELU mismatch")
+        embedder = ClipEmbedder()
+    kinds = {type(m).__name__ for m in embedder.model.modules() if "GELU" in type(m).__name__}
+    assert kinds == {"QuickGELU"}
+    assert embedder.activation == "quickgelu"

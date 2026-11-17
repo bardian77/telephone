@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import threading
+import warnings
 
 import numpy as np
 
@@ -57,14 +58,27 @@ class ClipEmbedder:
                 "CLIP needs torch and open_clip_torch: pip install 'telephone[metrics]'"
             ) from e
         torch.set_num_threads(max(1, (os.cpu_count() or 2) // 2))
+        # A network has to be built with the activation its weights were trained with. OpenAI's
+        # weights were trained with one called QuickGELU. open_clip builds plain "ViT-B-32" with
+        # GELU instead and only warns, and the mis-built network gives different numbers. So
+        # QuickGELU is asked for whenever the weights call for it, and a mismatch that is still
+        # there counts as a failure to load, not as a warning.
+        weights = open_clip.get_pretrained_cfg(self.model_name, self.pretrained)
         try:
-            model, _, preprocess = open_clip.create_model_and_transforms(
-                self.model_name, pretrained=self.pretrained
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings("error", message="QuickGELU mismatch")
+                model, _, preprocess = open_clip.create_model_and_transforms(
+                    self.model_name,
+                    pretrained=self.pretrained,
+                    force_quick_gelu=bool(weights.get("quick_gelu")),
+                )
         except Exception as e:  # noqa: BLE001  (network, missing weights, bad name)
             raise MetricsUnavailable(
                 f"Could not load CLIP {self.model_name}/{self.pretrained}: {e}"
             ) from e
+        # Read off the network that was built, so result labels say what really ran.
+        built_with = {type(m).__name__ for m in model.modules()}
+        self.activation = "quickgelu" if "QuickGELU" in built_with else "gelu"
         self.model = model.eval()
         self.preprocess = preprocess
         self.torch = torch

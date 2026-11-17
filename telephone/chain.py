@@ -47,22 +47,31 @@ def config_fingerprint(
 ) -> str:
     """Hash of what actually runs: every station's resolved provider, model and params, the
     extractor, and the seed. Providers and models left as None are resolved through the same
-    defaults the stations use, so an explicit default and an implicit one hash the same.
+    defaults the stations use, so an explicit default and an implicit one hash the same. The
+    screenshot station's params are filled in from its defaults in the same way, so a change
+    to the default phone screen or way of resampling changes the hash.
 
     A ledger row is only resumed when its fingerprint matches, so a chain first run on mock
     providers (or on a different model) can never be silently continued as a real one.
+
+    Not covered: the platform station's presets. Their numbers live in the code and only the
+    preset's name is hashed here, because the saved rows of experiment 1 carry fingerprints
+    made that way.
     """
     from .providers import IMAGE_DEFAULT_MODELS, VISION_DEFAULT_MODELS
+    from .stations.screenshot import resolve_params as screenshot_params
 
     def resolved(s: StationConfig) -> dict:
-        provider, model = s.provider, s.model
+        provider, model, params = s.provider, s.model, s.params
         if s.kind in ("caption", "extract"):
             provider = provider or settings.default_captioner
             model = model or VISION_DEFAULT_MODELS.get(provider, provider)
         elif s.kind == "regenerate":
             provider = provider or settings.default_generator
             model = model or IMAGE_DEFAULT_MODELS.get(provider, provider)
-        return {"kind": s.kind, "provider": provider, "model": model, "params": s.params}
+        elif s.kind == "screenshot":
+            params = {**params, **screenshot_params(params)}  # what was written, plus defaults
+        return {"kind": s.kind, "provider": provider, "model": model, "params": params}
 
     return stable_hash(
         {

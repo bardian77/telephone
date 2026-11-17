@@ -1,0 +1,331 @@
+{
+  "clip_model": "ViT-B-32/openai",
+  "templates": [
+    "a photo taken in {place}",
+    "a photograph of {place}",
+    "{place}"
+  ],
+  "logit_scale": 100.0,
+  "photographs": [
+    {
+      "image": "abstract_barbican_reflection_01",
+      "negative_control": true,
+      "place": "Barbican, London",
+      "lineup": "modernist_estates",
+      "lineup_size": 12,
+      "rank": 2,
+      "prob": 0.1035,
+      "top": "Thamesmead, London",
+      "per_template_rank": {
+        "a photo taken in {place}": 2,
+        "a photograph of {place}": 3,
+        "{place}": 2
+      },
+      "ladder": [
+        {
+          "label": "Barbican, London",
+          "sim": 0.226
+        },
+        {
+          "label": "London, England",
+          "sim": 0.2257
+        },
+        {
+          "label": "Europe",
+          "sim": 0.2227
+        },
+        {
+          "label": "a city",
+          "sim": 0.2298
+        }
+      ],
+      "best_rung": "a city",
+      "specific_minus_generic": -0.0038
+    },
+    {
+      "image": "landscape_dolomites_larches_01",
+      "negative_control": false,
+      "place": "the Dolomites, Italy",
+      "lineup": "mountain_ranges",
+      "lineup_size": 12,
+      "rank": 1,
+      "prob": 0.6196,
+      "top": "the Dolomites, Italy",
+      "per_template_rank": {
+        "a photo taken in {place}": 1,
+        "a photograph of {place}": 1,
+        "{place}": 1
+      },
+      "ladder": [
+        {
+          "label": "the Dolomites, Italy",
+          "sim": 0.2732
+        },
+        {
+          "label": "the Alps",
+          "sim": 0.2642
+        },
+        {
+          "label": "Europe",
+          "sim": 0.2358
+        },
+        {
+          "label": "the mountains",
+          "sim": 0.2403
+        }
+      ],
+      "best_rung": "the Dolomites, Italy",
+      "specific_minus_generic": 0.0329
+    },
+    {
+      "image": "portrait_dolomites_self_01",
+      "negative_control": false,
+      "place": "the Dolomites, Italy",
+      "lineup": "mountain_ranges",
+      "lineup_size": 12,
+      "rank": 3,
+      "prob": 0.1168,
+      "top": "the Pyrenees, Spain",
+      "per_template_rank": {
+        "a photo taken in {place}": 3,
+        "a photograph of {place}": 3,
+        "{place}": 4
+      },
+      "ladder": [
+        {
+          "label": "the Dolomites, Italy",
+          "sim": 0.2567
+        },
+        {
+          "label": "the Alps",
+          "sim": 0.2723
+        },
+        {
+          "label": "Europe",
+          "sim": 0.2356
+        },
+        {
+          "label": "the mountains",
+          "sim": 0.2559
+        }
+      ],
+      "best_rung": "the Alps",
+      "specific_minus_generic": 0.0009
+    },
+    {
+      "image": "street_barbican_lake_01",
+      "negative_control": false,
+      "place": "Barbican, London",
+      "lineup": "modernist_estates",
+      "lineup_size": 12,
+      "rank": 1,
+      "prob": 0.5985,
+      "top": "Barbican, London",
+      "per_template_rank": {
+        "a photo taken in {place}": 1,
+        "a photograph of {place}": 2,
+        "{place}": 1
+      },
+      "ladder": [
+        {
+          "label": "Barbican, London",
+          "sim": 0.2913
+        },
+        {
+          "label": "London, England",
+          "sim": 0.2297
+        },
+        {
+          "label": "Europe",
+          "sim": 0.2145
+        },
+        {
+          "label": "a city",
+          "sim": 0.237
+        }
+      ],
+      "best_rung": "Barbican, London",
+      "specific_minus_generic": 0.0543
+    },
+    {
+      "image": "street_bologna_portici_01",
+      "negative_control": false,
+      "place": "Bologna, Italy",
+      "lineup": "cities",
+      "lineup_size": 12,
+      "rank": 1,
+      "prob": 0.5721,
+      "top": "Bologna, Italy",
+      "per_template_rank": {
+        "a photo taken in {place}": 1,
+        "a photograph of {place}": 1,
+        "{place}": 1
+      },
+      "ladder": [
+        {
+          "label": "Bologna, Italy",
+          "sim": 0.2992
+        },
+        {
+          "label": "Italy",
+          "sim": 0.2692
+        },
+        {
+          "label": "Europe",
+          "sim": 0.2337
+        },
+        {
+          "label": "a city",
+          "sim": 0.2343
+        }
+      ],
+      "best_rung": "Bologna, Italy",
+      "specific_minus_generic": 0.0649
+    },
+    {
+      "image": "text_barbican_seddon_house_01",
+      "negative_control": false,
+      "place": "Barbican, London",
+      "lineup": "modernist_estates",
+      "lineup_size": 12,
+      "rank": 1,
+      "prob": 0.9484,
+      "top": "Barbican, London",
+      "per_template_rank": {
+        "a photo taken in {place}": 1,
+        "a photograph of {place}": 1,
+        "{place}": 1
+      },
+      "ladder": [
+        {
+          "label": "Barbican, London",
+          "sim": 0.3162
+        },
+        {
+          "label": "London, England",
+          "sim": 0.2426
+        },
+        {
+          "label": "Europe",
+          "sim": 0.2268
+        },
+        {
+          "label": "a city",
+          "sim": 0.251
+        }
+      ],
+      "best_rung": "Barbican, London",
+      "specific_minus_generic": 0.0652
+    }
+  ],
+  "cross": [
+    {
+      "image": "abstract_barbican_reflection_01",
+      "place": "Bologna, Italy",
+      "lineup": "cities",
+      "lineup_size": 12,
+      "rank": 12,
+      "prob": 0.0106,
+      "top": "Venice, Italy"
+    },
+    {
+      "image": "abstract_barbican_reflection_01",
+      "place": "the Dolomites, Italy",
+      "lineup": "mountain_ranges",
+      "lineup_size": 12,
+      "rank": 4,
+      "prob": 0.1091,
+      "top": "the Apennines, Italy"
+    },
+    {
+      "image": "landscape_dolomites_larches_01",
+      "place": "Bologna, Italy",
+      "lineup": "cities",
+      "lineup_size": 12,
+      "rank": 3,
+      "prob": 0.0909,
+      "top": "Turin, Italy"
+    },
+    {
+      "image": "landscape_dolomites_larches_01",
+      "place": "Barbican, London",
+      "lineup": "modernist_estates",
+      "lineup_size": 12,
+      "rank": 8,
+      "prob": 0.0056,
+      "top": "Alt-Erlaa, Vienna"
+    },
+    {
+      "image": "portrait_dolomites_self_01",
+      "place": "Bologna, Italy",
+      "lineup": "cities",
+      "lineup_size": 12,
+      "rank": 6,
+      "prob": 0.0567,
+      "top": "Turin, Italy"
+    },
+    {
+      "image": "portrait_dolomites_self_01",
+      "place": "Barbican, London",
+      "lineup": "modernist_estates",
+      "lineup_size": 12,
+      "rank": 8,
+      "prob": 0.0057,
+      "top": "Alt-Erlaa, Vienna"
+    },
+    {
+      "image": "street_barbican_lake_01",
+      "place": "Bologna, Italy",
+      "lineup": "cities",
+      "lineup_size": 12,
+      "rank": 10,
+      "prob": 0.0277,
+      "top": "Padua, Italy"
+    },
+    {
+      "image": "street_barbican_lake_01",
+      "place": "the Dolomites, Italy",
+      "lineup": "mountain_ranges",
+      "lineup_size": 12,
+      "rank": 5,
+      "prob": 0.0156,
+      "top": "the Caucasus, Georgia"
+    },
+    {
+      "image": "street_bologna_portici_01",
+      "place": "Barbican, London",
+      "lineup": "modernist_estates",
+      "lineup_size": 12,
+      "rank": 9,
+      "prob": 0.0,
+      "top": "Corviale, Rome"
+    },
+    {
+      "image": "street_bologna_portici_01",
+      "place": "the Dolomites, Italy",
+      "lineup": "mountain_ranges",
+      "lineup_size": 12,
+      "rank": 2,
+      "prob": 0.0942,
+      "top": "the Apennines, Italy"
+    },
+    {
+      "image": "text_barbican_seddon_house_01",
+      "place": "Bologna, Italy",
+      "lineup": "cities",
+      "lineup_size": 12,
+      "rank": 7,
+      "prob": 0.0046,
+      "top": "London, England"
+    },
+    {
+      "image": "text_barbican_seddon_house_01",
+      "place": "the Dolomites, Italy",
+      "lineup": "mountain_ranges",
+      "lineup_size": 12,
+      "rank": 11,
+      "prob": 0.0024,
+      "top": "the Caucasus, Georgia"
+    }
+  ]
+}
