@@ -17,12 +17,13 @@ from types import SimpleNamespace
 import pytest
 
 from telephone import cost
-from telephone.chain import ChainRunner, RunnerOptions
+from telephone.chain import ChainRunner, RunnerOptions, config_fingerprint
 from telephone.config import Settings, get_settings
 from telephone.experiments import load_all, mockify
 from telephone.fixtures import make_fixture
 from telephone.ledger import Ledger
 from telephone.models import ChainConfig, StationConfig, Usage
+from telephone.stations import PRESETS
 
 EXPERIMENTS = Path(__file__).resolve().parents[1] / "experiments"
 
@@ -94,6 +95,28 @@ def test_fingerprint_treats_default_and_explicit_provider_alike(tmp_path):
     events: list[str] = []
     ChainRunner(options=opts, on_event=lambda k, d: events.append(k)).run(b)
     assert events.count("resume") == 2 and r1[0].config_sha
+
+
+def test_fingerprint_covers_the_platform_preset_numbers_that_live_in_the_code(monkeypatch):
+    """An experiment file only names a platform preset; the size and JPEG quality behind the
+    name live in PRESETS. A chain is resumed only from rows with the same fingerprint, so the
+    fingerprint must change when a preset's numbers change. Otherwise one chain could be made
+    with two JPEG qualities and nothing would show it."""
+
+    def fingerprint(params: dict) -> str:
+        upload = StationConfig(kind="platform", params=params)
+        cfg = ChainConfig(chain_id="t__c__x", experiment_id="t", image="x.png", stations=[upload])
+        return config_fingerprint(cfg, None, get_settings())
+
+    before = fingerprint({"preset": "instagram"})
+    assert fingerprint({"preset": "instagram"}) == before
+    assert fingerprint({"preset": "whatsapp"}) != before
+    # writing down the number the preset already has builds the same station: one fingerprint
+    assert fingerprint({"preset": "instagram", "quality": 72}) == before
+    assert fingerprint({"preset": "instagram", "quality": 50}) != before
+
+    monkeypatch.setitem(PRESETS, "instagram", {**PRESETS["instagram"], "quality": 60})
+    assert fingerprint({"preset": "instagram"}) != before
 
 
 def test_errored_generation_zero_is_not_resumed(tmp_path):
