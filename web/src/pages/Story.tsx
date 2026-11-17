@@ -5,6 +5,7 @@ import TryYourOwn from '../components/TryYourOwn'
 import { JOURNEYS, PHOTOS, dataUrl, kb, percent, shortPlace, type Journey, type Site, type SitePass, type SitePhoto } from '../site'
 
 type Focus = { x: number; y: number } // a point on the original, as fractions of its width and height
+type Sel = { photo: string; journey: string; pass: number } // what the visitor has chosen
 type Row = { term: string; state: 'here' | 'going' | 'gone' | 'plain'; text: string }
 
 const STATE_WORD = { here: 'still here', going: 'going', gone: 'gone', plain: '' } as const
@@ -71,11 +72,13 @@ function rowsFor(photo: SitePhoto, journey: Journey, p: SitePass): Row[] {
   if (p.pass > 0 && enlarged) {
     rows.push({ term: 'Fine detail', state: 'plain', text: 'Not measured for this one. The photograph is smaller than the app’s size, so the app enlarges it and there is nothing fair to compare with.' })
   } else if (p.pass > 0 && kept != null) {
-    const share = Math.min(1, kept)
+    const share = Math.min(1, Math.max(0, kept))
+    // marks that saving added and that were never in the photograph
+    const added = (p.detail?.detail_energy ?? 0) - kept > 0.15 ? ' Saving has also added marks that were never in the photograph.' : ''
     rows.push({
       term: 'Fine detail',
       state: share >= 0.9 ? 'here' : share >= 0.5 ? 'going' : 'gone',
-      text: share >= 0.995 ? 'About all of it is left.' : `${percent(share)} of the fine detail is left.`,
+      text: (share >= 0.995 ? 'About all of it is left.' : `${percent(share)} of the fine detail is left.`) + added,
     })
   }
 
@@ -148,20 +151,38 @@ export default function Story({ site }: { site: Site }) {
     () => PHOTOS.map((meta) => ({ meta, photo: site.photos.find((p) => p.stem === meta.stem) })).filter((x): x is { meta: (typeof PHOTOS)[number]; photo: SitePhoto } => !!x.photo),
     [site],
   )
+  // What is chosen is kept here and copied into the address, so a link can point at one
+  // photograph, journey and pass. Updates read the latest choice, so quick presses all count.
   const [params, setParams] = useSearchParams()
-  const current = photos.find((x) => x.photo.stem === params.get('photo')) ?? photos[0]
+  const [sel, setSel] = useState<Sel>(() => ({
+    photo: params.get('photo') ?? photos[0]?.photo.stem ?? '',
+    journey: params.get('journey') ?? 'screenshot_many_phones',
+    pass: Number(params.get('pass') ?? 0) || 0,
+  }))
+  useEffect(() => {
+    setParams({ photo: sel.photo, journey: sel.journey, pass: String(sel.pass) }, { replace: true })
+  }, [sel, setParams])
+  const passesOf = (c: Sel): SitePass[] => {
+    const photo = (photos.find((x) => x.photo.stem === c.photo) ?? photos[0])?.photo
+    const id = JOURNEYS.find((j) => j.id === c.journey && photo?.journeys[j.id])?.id ?? JOURNEYS.find((j) => photo?.journeys[j.id])?.id
+    return photo && id ? photo.journeys[id].passes : []
+  }
+  const current = photos.find((x) => x.photo.stem === sel.photo) ?? photos[0]
   const journeys = JOURNEYS.filter((j) => current?.photo.journeys[j.id])
-  const chosen = journeys.find((j) => j.id === (params.get('journey') ?? 'screenshot_many_phones')) ?? journeys[0]
+  const chosen = journeys.find((j) => j.id === sel.journey) ?? journeys[0]
   const journey = current && chosen ? current.photo.journeys[chosen.id] : undefined
   const passes = journey?.passes ?? []
-  const index = Math.max(0, passes.findIndex((s) => String(s.pass) === (params.get('pass') ?? '0')))
+  const index = Math.max(0, passes.findIndex((x) => x.pass === sel.pass))
   const p = passes[index]
   const next = passes[index + 1]
-  const go = (change: { photo?: string; journey?: string; pass?: number }) => {
-    const to = { photo: current?.photo.stem ?? '', journey: chosen?.id ?? '', pass: p?.pass ?? 0, ...change }
-    setParams({ photo: to.photo, journey: to.journey, pass: String(to.pass) }, { replace: true })
-  }
+  const go = (change: Partial<Sel>) => setSel((c) => ({ ...c, ...change }))
   const setIndex = (i: number) => go({ pass: passes[i]?.pass ?? 0 })
+  const passItOn = () =>
+    setSel((c) => {
+      const list = passesOf(c)
+      const at = list.findIndex((x) => x.pass === c.pass)
+      return { ...c, pass: list[at + 1]?.pass ?? 0 } // after the last pass, back to the original
+    })
   const firstSpot = (): Focus => ({ x: current?.meta.focus[0] ?? 0.5, y: current?.meta.focus[1] ?? 0.5 })
   const [focus, setFocus] = useState<Focus>(firstSpot)
   const stem = current?.photo.stem
@@ -191,23 +212,12 @@ export default function Story({ site }: { site: Site }) {
       <section className="opening">
         <h1>I passed my photographs along, again and again, and kept every copy.</h1>
         <p className="lead">
-          Every time a picture is sent, uploaded or screenshotted, something rewrites it. Choose what happens to the photograph,
-          then pass it on and see what is left.
+          Every time a picture is sent, uploaded or screenshotted, something rewrites it. Pass this one on and see what is
+          left.
         </p>
       </section>
 
       <section aria-label="The photograph and its passes">
-        <fieldset className="choice">
-          <legend>What happens to it</legend>
-          {journeys.map((j) => (
-            <label key={j.id} className={j.id === chosen.id ? 'on' : ''}>
-              <input type="radio" name="journey" checked={j.id === chosen.id} onChange={() => go({ journey: j.id, pass: 0 })} />
-              {j.label}
-            </label>
-          ))}
-        </fieldset>
-        <p className="muted says">{chosen.says}</p>
-
         <div className="player">
           <div>
             <div className="stage">
@@ -223,7 +233,7 @@ export default function Story({ site }: { site: Site }) {
               <span className="tag">{p.pass === 0 ? 'The original' : `Pass ${p.pass} of ${journey.generations}`}</span>
             </div>
             <div className="controls">
-              <button className="primary" onClick={() => setIndex(next ? index + 1 : 0)}>{next ? 'Pass it on' : 'Start again'}</button>
+              <button className="primary" onClick={passItOn}>{next ? 'Pass it on' : 'Start again'}</button>
               <div className="stops" role="group" aria-label="Go to a pass">
                 {passes.map((s, i) => (
                   <button key={s.pass} className={i === index ? 'current' : ''} aria-current={i === index ? 'step' : undefined} onClick={() => setIndex(i)}>
@@ -236,6 +246,16 @@ export default function Story({ site }: { site: Site }) {
           </div>
 
           <div>
+            <fieldset className="choice">
+              <legend>What happens to it</legend>
+              {journeys.map((j) => (
+                <label key={j.id} className={j.id === chosen.id ? 'on' : ''}>
+                  <input type="radio" name="journey" checked={j.id === chosen.id} onChange={() => go({ journey: j.id })} />
+                  {j.label}
+                </label>
+              ))}
+            </fieldset>
+            <p className="muted says">{chosen.says}</p>
             <h2 className="left-title" aria-live="polite">{p.pass === 0 ? 'Before any pass' : `What is left after ${p.pass === 1 ? 'one pass' : `${p.pass} passes`}`}</h2>
             <dl className="left">
               {rows.map((r) => (

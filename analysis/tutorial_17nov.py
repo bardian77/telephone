@@ -166,15 +166,15 @@ def fig_detail(detail) -> None:
     note.text(
         0.0,
         0.02,
-        "1.0 = as much fine detail as the same part of the\noriginal resized once to the same size.\n"
-        "JPEG blocks count as detail, so read this next to\nSSIM at full size. The 460 px reflection crop is\n"
-        "left out: the app enlarges it, so nothing fair\nexists to compare it with.",
+        "1.0 = all the fine detail of the same part of the\noriginal, resized once, is still in place.\n"
+        "Fine detail: what a slight blur would remove.\nThe 460 px reflection crop is left out: the app\n"
+        "enlarges it, so nothing fair exists to compare\nit with.",
         transform=note.transAxes,
         fontsize=11,
         va="bottom",
     )
     fig.supxlabel("Pass")
-    fig.supylabel("Fine detail left (share of the original's)")
+    fig.supylabel("Share of the original's fine detail still in place")
     save(
         fig,
         "detail_by_journey",
@@ -239,7 +239,10 @@ def fig_two_measures(ledger, detail) -> None:
             lambda s, j: (ledger[(s, j)][last].get("metrics") or {}).get("ssim_to_g0"),
         ),
         ("SSIM at the picture's own size", lambda s, j: detail[(s, j)][last].get("ssim_native")),
-        ("Fine detail left", lambda s, j: detail[(s, j)][last].get("detail_kept")),
+        (
+            "Original's fine detail still in place",
+            lambda s, j: detail[(s, j)][last].get("detail_kept"),
+        ),
     ]
     fig, axes = plt.subplots(1, 3, figsize=(15, 5.6), layout="constrained", sharey=True)
     for ax, (title, pick) in zip(axes, panels, strict=True):
@@ -571,9 +574,9 @@ def pr(row: dict) -> str:
 def table(ledger, detail, place) -> None:
     last = max((max(c) for c in ledger.values()), default=40)
     print(
-        f"\n| photograph | journey | settled at | SSIM 512 px @ {last} | SSIM own size @ {last} | fine detail @ {last} | frame @ {last} | place rank, prob @ 0 | place rank, prob @ {last} | CLIP dist @ {last} | kB @ 1 |"
+        f"\n| photograph | journey | settled at | SSIM 512 px @ {last} | SSIM own size @ {last} | detail kept @ {last} | detail energy @ {last} | frame @ {last} | place rank, prob @ 0 | place rank, prob @ {last} | CLIP dist @ {last} | kB @ 1 |"
     )
-    print("|---|---|---|---|---|---|---|---|---|---|---|")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|")
     for stem, (name, _) in PHOTOS.items():
         for j, (label, *_rest) in JOURNEYS.items():
             chain = ledger.get((stem, j))
@@ -586,7 +589,8 @@ def table(ledger, detail, place) -> None:
             kb1 = (chain.get(1, {}).get("metrics") or {}).get("file_bytes")
             print(
                 f"| {name} | {label} | {settled_at(chain) or 'never'} | {fmt(m.get('ssim_to_g0'))} | {fmt(d.get('ssim_native'))} | "
-                f"{fmt(d.get('detail_kept'))} | {fmt(d.get('frame_kept'))} | {pr(p0)} | {pr(pn)} | {fmt(m.get('clip_dist_to_g0'))} | "
+                f"{fmt(d.get('detail_kept'))} | {fmt(d.get('detail_energy'))} | {fmt(d.get('frame_kept'))} | {pr(p0)} | {pr(pn)} | "
+                f"{fmt(m.get('clip_dist_to_g0'))} | "
                 f"{'-' if kb1 is None else round(kb1 / 1000)} |"
             )
 

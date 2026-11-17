@@ -1,5 +1,23 @@
 # Experiment 1, for the 10 November tutorial
 
+> **Correction, 17 November 2026.** The CLIP distances below were measured on a CLIP model that
+> had been built with the wrong activation function for its weights (the library only warned).
+> The text is left as I presented it on 10 November. Measured again on the corrected model, with
+> every output file byte for byte the same as before:
+>
+> - WhatsApp and Instagram presets: CLIP distance 0.008 to 0.078 at pass 20, where this page
+>   says 0.01 to 0.03. Ten of the twelve chains are at 0.008 to 0.020. The other two are on the
+>   WhatsApp preset: the reflection crop at 0.057 and the self-portrait at 0.078.
+> - Harsh preset: 0.057 to 0.114, where this page says 0.06 to 0.12.
+> - Two different photographs of mine are 0.17 to 0.54 apart (median 0.47), where this page says
+>   0.43.
+>
+> SSIM, LPIPS and the file sizes are unchanged, and so is the finding: almost all the change
+> happens on the first upload. The drift charts in `figures/` still show the first CLIP values.
+> The first results are kept in
+> `docs/evidence/2026-11-09_exp01_results_wrong_clip_build.jsonl`. What happened next is in
+> `docs/tutorial-17nov/summary.md`.
+
 Half a page to say out loud. Figures are in `figures/`: one contact sheet and one drift chart per
 photograph (`contact_<photo>.jpg`, `drift_<photo>.png`). The numbers below come from
 `analysis/tutorial_10nov.py`, which reads the run ledger; the full rows are in

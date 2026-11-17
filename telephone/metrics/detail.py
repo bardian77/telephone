@@ -9,12 +9,22 @@ So here each generation is compared, at its own size, with a reference: the part
 original that the generation still shows, resampled once to the generation's size. "Registered"
 means lined up like that. Three numbers come out:
 
-  ssim_native  SSIM against the reference at the generation's own size, 1 identical.
-  detail_kept  How much pixel-to-pixel variation the generation has, as a share of the
-               reference's. 1.0 means as much fine detail as one clean resize. JPEG blocks add
-               false edges, so this can overstate what is left and can go above 1. It is read
-               together with ssim_native, never alone.
-  frame_kept   The share of the original's area that is still in the picture.
+  ssim_native    SSIM against the reference at the generation's own size, 1 identical.
+  detail_kept    The share of the reference's fine detail that is still there, in the same
+                 place. 1.0 means all of it. "Fine detail" is what a slight blur would take
+                 away from a picture. Marks that were never in the photograph, such as the
+                 speckle that saving a JPEG adds, do not count: they are not in the same place
+                 as anything in the reference.
+  detail_energy  How much fine detail the generation has in total, whatever it is, as a share
+                 of the reference's. It counts what saving added as well, so it can go well
+                 above 1 for a picture that has got worse. It is kept beside detail_kept to
+                 show when that has happened; it is not a measure of what is left.
+  frame_kept     The share of the original's area that is still in the picture.
+
+Why two detail numbers: the first version of this file only had the total (as the variance of
+a Laplacian). On a chain that saved a JPEG at quality 80 and then at quality 60 it reported
+1.83, "183% of the detail", for a picture whose SSIM had fallen to 0.86. Counting only what
+lines up with the reference is the correction.
 
 This only means something for chains that scale, crop and re-save the same picture (the
 platform and screenshot stations). A picture that was redrawn from a description has no "same
@@ -35,10 +45,12 @@ from .structural import _ssim_global
 
 METHOD = (
     "each generation at its own size, against the same region of the original resampled once "
-    "(Lanczos); ssim_native: windowed SSIM on luminance; detail_kept: variance of the "
-    "4-neighbour Laplacian, generation over reference"
+    "(Lanczos); ssim_native: windowed SSIM on luminance; fine detail: a picture minus a "
+    "Gaussian blur of itself (sigma 1.5 px); detail_kept: the generation's fine detail "
+    "projected on the reference's; detail_energy: the generation's total over the reference's"
 )
 SEARCH_PX = 3  # how far registration_shift looks in each direction
+BLUR_SIGMA = 1.5  # the slight blur that defines "fine detail", in pixels
 
 
 @dataclass(frozen=True)
@@ -98,18 +110,47 @@ def box_after(box: CropBox, stations: list[StationRecord]) -> CropBox:
     return box
 
 
-def reference_for(original: bytes, box: CropBox, size: tuple[int, int]) -> Image.Image:
+def _picture(original: bytes | Image.Image) -> Image.Image:
+    """The original as a picture. A chain's original can be opened once and passed in."""
+    return original if isinstance(original, Image.Image) else from_bytes(original)
+
+
+def reference_for(
+    original: bytes | Image.Image, box: CropBox, size: tuple[int, int]
+) -> Image.Image:
     """What the generation would be with no damage at all: the original's `box`, resampled
     once to `size`. Greyscale, because the comparison is made on brightness."""
-    grey = from_bytes(original).convert("L")
+    grey = _picture(original).convert("L")
     return grey.resize(size, Image.Resampling.LANCZOS, box=(box.x0, box.y0, box.x1, box.y1))
 
 
-def _fine_detail(a: np.ndarray) -> float:
-    """Variance of the 4-neighbour Laplacian: how much each pixel differs from the average of
-    the four beside it. High for crisp texture, low for a blur."""
-    lap = a[:-2, 1:-1] + a[2:, 1:-1] + a[1:-1, :-2] + a[1:-1, 2:] - 4.0 * a[1:-1, 1:-1]
-    return float(lap.var())
+def _blur(a: np.ndarray, sigma: float = BLUR_SIGMA) -> np.ndarray:
+    """A Gaussian blur with numpy alone: one pass across, one pass down."""
+    radius = int(3 * sigma + 0.5)
+    x = np.arange(-radius, radius + 1)
+    weights = np.exp(-(x**2) / (2 * sigma**2))
+    weights /= weights.sum()
+    out = a
+    for axis in (0, 1):
+        pad = [(radius, radius) if ax == axis else (0, 0) for ax in (0, 1)]
+        padded = np.pad(out, pad, mode="edge")
+        total = np.zeros_like(out, dtype=np.float64)
+        for i, w in enumerate(weights):
+            window = [slice(None), slice(None)]
+            window[axis] = slice(i, i + out.shape[axis])
+            total += w * padded[tuple(window)]
+        out = total
+    return out
+
+
+def _fine(a: np.ndarray) -> np.ndarray:
+    """A picture's fine detail: what a slight blur takes away from it. The outer few pixels
+    are left out, where the blur has nothing beyond the edge to work with."""
+    edge = int(3 * BLUR_SIGMA + 0.5)
+    detail = a - _blur(a)
+    if min(a.shape) > 4 * edge:
+        detail = detail[edge:-edge, edge:-edge]
+    return detail
 
 
 def _ssim(a: np.ndarray, b: np.ndarray) -> float:
@@ -135,6 +176,10 @@ def registration_shift(
     a = np.asarray(generation.convert("L"), dtype=np.float64)
     b = np.asarray(reference.convert("L"), dtype=np.float64)
     h, w = a.shape
+    if h > 640 or w > 640:  # the middle of a large picture is enough to tell, and much quicker
+        top, left = max(0, (h - 640) // 2), max(0, (w - 640) // 2)
+        a, b = a[top : top + 640, left : left + 640], b[top : top + 640, left : left + 640]
+        h, w = a.shape
     if h <= 2 * search + 1 or w <= 2 * search + 1:
         return (0, 0)
     inner = a[search : h - search, search : w - search]
@@ -152,24 +197,28 @@ def registration_shift(
     return best
 
 
-def detail_scores(generation: bytes, original: bytes, box: CropBox) -> dict[str, Any]:
-    """The three numbers for one generation, plus what they were measured on.
+def detail_scores(generation: bytes, original: bytes | Image.Image, box: CropBox) -> dict[str, Any]:
+    """The numbers for one generation, plus what they were measured on.
 
-    `box` is the part of the original this generation still shows (see box_after).
+    `box` is the part of the original this generation still shows (see box_after). `original`
+    is the original's bytes, or the picture already opened.
     """
     gen = from_bytes(generation).convert("L")
-    orig_w, orig_h = from_bytes(original).size
-    ref = reference_for(original, box, gen.size)
+    whole_original = _picture(original)
+    orig_w, orig_h = whole_original.size
+    ref = reference_for(whole_original, box, gen.size)
     a = np.asarray(gen, dtype=np.float64)
     b = np.asarray(ref, dtype=np.float64)
-    ref_detail = _fine_detail(b)
+    fine_a, fine_b = _fine(a), _fine(b)
+    in_reference = float((fine_b * fine_b).sum())
     return {
         "width": gen.width,
         "height": gen.height,
         "box": [box.x0, box.y0, box.x1, box.y1],
         "frame_kept": box.area / float(orig_w * orig_h),
         "ssim_native": _ssim(a, b),
-        # a flat reference has no detail to keep a share of
-        "detail_kept": _fine_detail(a) / ref_detail if ref_detail > 0 else None,
+        # a flat reference has no fine detail to keep a share of
+        "detail_kept": float((fine_a * fine_b).sum()) / in_reference if in_reference else None,
+        "detail_energy": float((fine_a * fine_a).sum()) / in_reference if in_reference else None,
         "shift": list(registration_shift(gen, ref)),
     }

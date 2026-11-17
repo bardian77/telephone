@@ -769,8 +769,8 @@ def detail_test(
             no_original += 1
             continue
         console.print(f"  {chain_id} r{repeat}", style="dim", markup=False)
-        original = first.read_bytes()
-        box = whole(*from_bytes(original).size)
+        original = from_bytes(first.read_bytes())  # opened once for the whole chain
+        box = whole(*original.size)
         for rec in recs:
             path = file_of(rec)
             if rec.error or path is None:

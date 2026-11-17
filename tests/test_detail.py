@@ -138,6 +138,38 @@ def test_a_clean_resize_keeps_its_detail_and_a_blurred_copy_does_not():
     assert b["ssim_native"] < a["ssim_native"] - 0.2
 
 
+def test_marks_that_saving_adds_do_not_count_as_detail_kept():
+    """Saving a JPEG twice adds speckle that was never in the photograph. It raises the amount
+    of pixel-to-pixel variation (detail_energy) and must not raise the share of the ORIGINAL's
+    detail that is still there (detail_kept)."""
+    original = detailed_image((600, 400))
+    png = to_png_bytes(original)
+    clean = original.resize((360, 240), Image.Resampling.LANCZOS)
+    rng = np.random.default_rng(1)
+    speckle = rng.normal(0, 12, (240, 360, 1))
+    noisy = Image.fromarray(
+        np.clip(np.asarray(clean, dtype=float) + speckle, 0, 255).astype(np.uint8)
+    )
+
+    a = detail_scores(to_png_bytes(clean), png, whole(600, 400))
+    b = detail_scores(to_png_bytes(noisy), png, whole(600, 400))
+    assert b["detail_energy"] > a["detail_energy"] + 0.15  # more variation in the picture...
+    assert b["detail_kept"] == pytest.approx(
+        a["detail_kept"], abs=0.05
+    )  # ...none of it kept detail
+    assert b["ssim_native"] < a["ssim_native"]
+
+
+def test_a_picture_with_its_fine_detail_halved_keeps_about_half():
+    original = detailed_image((600, 400))
+    clean = original.resize((360, 240), Image.Resampling.LANCZOS)
+    soft = clean.filter(ImageFilter.GaussianBlur(4))
+    # half way between the clean picture and a heavily blurred one: about half the fine detail
+    half = Image.blend(clean, soft, 0.5)
+    scores = detail_scores(to_png_bytes(half), to_png_bytes(original), whole(600, 400))
+    assert scores["detail_kept"] == pytest.approx(0.5, abs=0.08)
+
+
 def test_frame_kept_is_the_share_of_the_original_still_in_the_picture():
     original = detailed_image((600, 400))
     box = CropBox(60.0, 40.0, 540.0, 360.0)  # 480 x 320 of 600 x 400
@@ -235,6 +267,7 @@ def test_detail_test_writes_one_sorted_row_per_generation(tmp_path):
     assert first["image"] == "street_test_01" and first["experiment_id"] == "t"
     assert (first["ssim_native"], first["detail_kept"], first["frame_kept"]) == (1.0, 1.0, 1.0)
     assert rows[3]["frame_kept"] < 1.0 and rows[7]["frame_kept"] == 1.0
+    assert first["detail_energy"] == 1.0
     for key in ("output_sha", "config_sha", "box", "shift", "width", "height", "method"):
         assert key in first
     assert "wrote 8 rows" in result.output

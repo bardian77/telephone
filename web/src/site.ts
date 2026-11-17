@@ -4,6 +4,7 @@
 export type PassDetail = {
   ssim_native: number | null
   detail_kept: number | null
+  detail_energy: number | null
   frame_kept: number | null
   box: [number, number, number, number] | null
 }

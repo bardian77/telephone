@@ -58,10 +58,12 @@ export default function HowItWorks({ site }: { site: Site | null }) {
         <dd>The size of the saved file.</dd>
         <dt>Fine detail</dt>
         <dd>
-          How much pixel-to-pixel variation the picture has, as a share of what the same part of the original has when it is
-          resized once to the same size. In the results files this is <code translate="no">detail_kept</code>, and it is read next to{' '}
-          <code translate="no">ssim_native</code>, a standard similarity score made at the picture’s own size. What it cannot show: JPEG saving
-          leaves faint square blocks, and those count as detail, so the number can flatter a heavily compressed picture.
+          Fine detail is what a slight blur would take away from a picture. I compare each pass, at its own size, with the
+          same part of the original resized once, and report how much of the original’s fine detail is still there, in the
+          same place. In the results files this is <code translate="no">detail_kept</code>, and it is read next to{' '}
+          <code translate="no">ssim_native</code>, a standard similarity score. What it cannot show: saving a JPEG also adds
+          marks that were never in the photograph. Those are counted separately (<code translate="no">detail_energy</code>),
+          so a picture can keep most of its detail and still look worse.
         </dd>
         <dt>Frame</dt>
         <dd>How much of the original picture’s area is still inside the frame. Only the careless-crop journey loses any.</dd>
@@ -141,6 +143,11 @@ export default function HowItWorks({ site }: { site: Site | null }) {
         <li>
           My first similarity score compared copies shrunk to 512 pixels wide. It reported almost no change in pictures that
           had plainly lost fine detail at full size. The fine-detail measure above replaced it.
+        </li>
+        <li>
+          The first version of that fine-detail measure was wrong too. It counted all the pixel-to-pixel variation in a
+          picture, and gave 183% to a picture that had been saved twice and looked worse. It now counts only the original’s
+          detail that is still in place.
         </li>
         <li>
           For the careless-crop journey, my first numbers mostly measured the cropping, not the damage. The comparison now

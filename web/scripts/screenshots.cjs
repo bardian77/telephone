@@ -51,8 +51,9 @@ async function main() {
   const pick = page.locator('.picker button')
   for (let i = 0; i < (await pick.count()); i++) {
     await pick.nth(i).click()
-    await page.waitForLoadState('networkidle')
-    const ok = await page.locator('.stage img').first().evaluate((img) => img.complete && img.naturalWidth > 0)
+    const ok = await page
+      .waitForFunction(() => { const img = document.querySelector('.stage img'); return img && img.complete && img.naturalWidth > 0 }, null, { timeout: 15000 })
+      .then(() => true, () => false)
     if (!ok) problems.push(`photograph ${i + 1} did not load`)
   }
 

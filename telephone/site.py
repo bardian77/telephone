@@ -37,7 +37,7 @@ from .models import GenerationRecord
 from .render import image_of, type_of, variant_of
 
 DEFAULT_PASSES = [0, 1, 2, 5, 10, 20, 40]
-DETAIL_KEYS = ("ssim_native", "detail_kept", "frame_kept", "box")
+DETAIL_KEYS = ("ssim_native", "detail_kept", "detail_energy", "frame_kept", "box")
 PLACE_KEYS = ("rank", "prob", "top", "place", "lineup_size")
 
 
