@@ -1,0 +1,121 @@
+# Places: where each photograph was taken, and the line-up it is tested against.
+#
+# Read by `telephone place-test` (the code is telephone/metrics/place.py). For every photograph a
+# machine (the CLIP model) is asked which candidate in a line-up matches the picture best. If the
+# true place comes first, the machine still recognises where the photograph was taken.
+#
+# Rules for this file
+#
+# 1. Pre-registration. This file was written in full on 2026-11-17, before any picture was scored
+#    against it. A line-up or a ladder is not changed after a score has been seen. If a genuine
+#    mistake has to be corrected, the correction is added to the `changes` list at the bottom,
+#    with its date, what changed and why.
+# 2. Fairness. Every candidate in a line-up is a bare place name, written the same way as the
+#    others ("Name, Region"), and put into the same sentences (TEMPLATES in
+#    telephone/metrics/place.py, for example "a photo taken in {place}"). No candidate carries a
+#    word that describes what a picture shows. "the porticoes of Bologna" against "Paris" would
+#    be unfair: CLIP can match the word porticoes to arches without knowing the city. The loader
+#    refuses a file that breaks this rule (BANNED_WORDS in the same module).
+# 3. Public photographs only. Nothing from data/originals/private/ is listed here.
+#
+# Where the labels come from: the table of the six photographs in docs/BRIEF.md, which the author
+# wrote. Claude copied the places from that table into this file. Bardia should confirm every
+# `place` below before the results are quoted.
+#
+# A ladder runs from the specific place to a generic kind of place, in the same pattern for every
+# photograph: the place > the city or region around it > the continent > the kind of place.
+
+lineups:
+  # For the Bologna street. Six other Italian cities are the hard distractors; five well-known
+  # European cities are the easy ones.
+  cities:
+    - "Bologna, Italy"
+    - "Turin, Italy"
+    - "Padua, Italy"
+    - "Florence, Italy"
+    - "Rome, Italy"
+    - "Venice, Italy"
+    - "Naples, Italy"
+    - "Lisbon, Portugal"
+    - "Paris, France"
+    - "Barcelona, Spain"
+    - "Prague, Czech Republic"
+    - "London, England"
+
+  # For the three Barbican photographs. Modernist and brutalist housing in eleven cities, each
+  # written "Name, City". The Barbican is written without "the" and without "Estate" so that it
+  # has the same form as the rest: "estate" names a kind of place and would be a giveaway that
+  # the other candidates lack. Thamesmead is the hard distractor (same city, concrete and water).
+  modernist_estates:
+    - "Barbican, London"
+    - "Thamesmead, London"
+    - "Byker, Newcastle"
+    - "Habitat 67, Montreal"
+    - "Unité d'Habitation, Marseille"
+    - "Corviale, Rome"
+    - "Scampia, Naples"
+    - "Gropiusstadt, Berlin"
+    - "Alt-Erlaa, Vienna"
+    - "Bijlmermeer, Amsterdam"
+    - "Novi Beograd, Belgrade"
+    - "Walden 7, Barcelona"
+
+  # For the two Dolomites photographs. Mountain ranges, each written "the Range, Country". None
+  # uses the word "mountains". The Apennines (same country) and two other parts of the Alps are
+  # the hard distractors, as Turin and Padua are for Bologna.
+  mountain_ranges:
+    - "the Dolomites, Italy"
+    - "the Apennines, Italy"
+    - "the Julian Alps, Slovenia"
+    - "the Bernese Alps, Switzerland"
+    - "the Pyrenees, Spain"
+    - "the Tatras, Poland"
+    - "the Carpathians, Romania"
+    - "the Caucasus, Georgia"
+    - "the Cairngorms, Scotland"
+    - "the Rockies, Canada"
+    - "the Andes, Peru"
+    - "the Himalayas, Nepal"
+
+photographs:
+  # Bologna porticoes at sunset, warm terracotta, small figures.
+  street_bologna_portici_01:
+    place: "Bologna, Italy"
+    lineup: cities
+    ladder: ["Bologna, Italy", "Italy", "Europe", "a city"]
+
+  # Barbican lake, brutalist columns, reflections, fountain, a coot.
+  street_barbican_lake_01:
+    place: "Barbican, London"
+    lineup: modernist_estates
+    ladder: ["Barbican, London", "London, England", "Europe", "a city"]
+
+  # Barbican, low angle, overcast, "Seddon House" and "No Cycling / No Skateboarding" signs.
+  text_barbican_seddon_house_01:
+    place: "Barbican, London"
+    lineup: modernist_estates
+    ladder: ["Barbican, London", "London, England", "Europe", "a city"]
+
+  # Crop of the lake photo: a column reflected in rippled water. Nothing in it says where it is,
+  # so it is expected NOT to be recognised. It stays in as the negative control: if this crop
+  # scores as well as the full photographs, the instrument is reading something other than place.
+  abstract_barbican_reflection_01:
+    place: "Barbican, London"
+    lineup: modernist_estates
+    ladder: ["Barbican, London", "London, England", "Europe", "a city"]
+    negative_control: true
+
+  # Dolomites, golden larches, blue sky, sun flare, a small car.
+  landscape_dolomites_larches_01:
+    place: "the Dolomites, Italy"
+    lineup: mountain_ranges
+    ladder: ["the Dolomites, Italy", "the Alps", "Europe", "the mountains"]
+
+  # The author with the car in the Dolomites, ultra-wide lens, curved horizon.
+  portrait_dolomites_self_01:
+    place: "the Dolomites, Italy"
+    lineup: mountain_ranges
+    ladder: ["the Dolomites, Italy", "the Alps", "Europe", "the mountains"]
+
+# Corrections made after the first score was seen. Each one: date, what changed, why.
+changes: []
