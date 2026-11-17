@@ -41,8 +41,30 @@ def histogram_distance(image_a: bytes, image_b: bytes) -> float:
     return float(np.sqrt(max(0.0, 1.0 - np.sum(np.sqrt(pa * pb)))))
 
 
+def describe_preprocessing(preprocess) -> str:
+    """What a model does to a picture before the network sees it, read off the steps themselves.
+
+    CLIP's standard preparation makes the picture's shorter side 224 px and then keeps the
+    central 224 x 224 square, so the network never sees what lies outside that square. That
+    comes out as "central square at 224 px". Steps that do not have this shape are "not
+    known", so a result never claims a preparation that did not run.
+    """
+    steps = {type(step).__name__: step for step in getattr(preprocess, "transforms", [])}
+    resize, crop = steps.get("Resize"), steps.get("CenterCrop")
+    if resize is None or crop is None or not isinstance(resize.size, int):
+        return "not known"
+    if tuple(crop.size) != (resize.size, resize.size):
+        return "not known"
+    return f"central square at {resize.size} px"
+
+
 class ClipEmbedder:
-    """Lazy CLIP wrapper. Construct once, call `embed` many times."""
+    """Lazy CLIP wrapper. Construct once, call `embed` many times.
+
+    After loading it says what really ran, for the label written into results: `activation`
+    (how the network was built), `library` (which open_clip built it) and `preprocessing`
+    (what is done to a picture before the network sees it).
+    """
 
     _instance: ClipEmbedder | None = None
     _lock = threading.Lock()
@@ -79,6 +101,8 @@ class ClipEmbedder:
         # Read off the network that was built, so result labels say what really ran.
         built_with = {type(m).__name__ for m in model.modules()}
         self.activation = "quickgelu" if "QuickGELU" in built_with else "gelu"
+        self.library = f"open_clip-{getattr(open_clip, '__version__', 'unknown')}"
+        self.preprocessing = describe_preprocessing(preprocess)
         self.model = model.eval()
         self.preprocess = preprocess
         self.torch = torch

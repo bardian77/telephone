@@ -1,4 +1,4 @@
-"""The place line-up: does a machine still recognise where a photograph was taken?
+"""The place line-up: where does the true place come in a line-up of candidate names?
 
 Every test here uses a fake embedder whose vectors are built by hand, so the expected rank,
 probability and ladder numbers can be worked out on paper. Nothing touches the network or the
@@ -33,7 +33,8 @@ from telephone.metrics.place import (
     load_places,
     model_label,
     place_vector,
-    places_sha,
+    provenance,
+    registered_sha,
     round_floats,
     score_ladder,
     score_lineup,
@@ -72,6 +73,7 @@ class FakeEmbedder:
 
     model_name = "fake"
     pretrained = "by-hand"
+    preprocessing = "none: vectors written by hand"
 
     def __init__(self, texts: dict[str, np.ndarray], images: dict[bytes, np.ndarray] | None = None):
         self.texts = texts
@@ -252,7 +254,7 @@ def test_ladder_gives_a_similarity_per_rung_the_best_rung_and_the_margin():
 
 
 def test_ladder_margin_is_negative_when_the_generic_rung_matches_best():
-    # the usual state of affairs: "a city" fits almost any street photograph better than a name
+    # a picture that the generic phrase fits better than the name of the place
     res = score_ladder(PICTURE, LADDER, ladder_fake(0.20, 0.22, 0.21, 0.28), BARE)
     assert res["best_rung"] == "a city"
     assert res["specific_minus_generic"] == pytest.approx(-0.08)
@@ -483,7 +485,9 @@ def test_the_real_lineups_obey_the_fairness_rule():
         assert len({c.lower().startswith("the ") for c in candidates}) == 1, name
 
 
-def test_the_real_ladders_are_parallel_and_start_at_the_true_place():
+def test_the_real_ladders_have_four_rungs_and_start_at_the_true_place():
+    # The same length, not the same levels: the second rung is a country for Bologna and a
+    # city for the Barbican. Ladder numbers are followed within one photograph only.
     places = load_places(REAL_PLACES)
     assert {len(e.ladder) for e in places.values()} == {4}
     for entry in places.values():
@@ -508,10 +512,10 @@ def test_the_real_file_opens_with_its_rules_and_keeps_a_list_of_changes():
 
 
 def sha_of(tmp_path: Path, doc: dict, templates: tuple[str, ...] = TEMPLATES) -> str:
-    return places_sha(load_places(write_places(tmp_path / "places.yaml", doc)), templates)
+    return registered_sha(load_places(write_places(tmp_path / "places.yaml", doc)), templates)
 
 
-def test_places_sha_is_the_same_for_the_same_lineups_ladders_and_wordings(tmp_path):
+def test_registered_sha_is_the_same_for_the_same_lineups_ladders_and_wordings(tmp_path):
     first = sha_of(tmp_path, GOOD_FILE)
     assert len(first) == 64  # a sha256
     assert sha_of(tmp_path, copy.deepcopy(GOOD_FILE)) == first
@@ -521,7 +525,7 @@ def test_places_sha_is_the_same_for_the_same_lineups_ladders_and_wordings(tmp_pa
     assert sha_of(tmp_path, logged) == first
 
 
-def test_places_sha_changes_with_anything_the_scoring_reads(tmp_path):
+def test_registered_sha_changes_with_anything_the_scoring_reads(tmp_path):
     first = sha_of(tmp_path, GOOD_FILE)
 
     easier = copy.deepcopy(GOOD_FILE)  # one distractor swapped for another
@@ -546,7 +550,7 @@ REGISTERED = "9a738792a0c428849a2343af2365ed3030255f9d0d898f8992fc5ccaeb554f5e"
 
 
 def test_the_registered_lineups_ladders_and_wordings_have_not_changed():
-    assert places_sha(load_places(REAL_PLACES)) == REGISTERED, (
+    assert registered_sha(load_places(REAL_PLACES)) == REGISTERED, (
         "data/places.yaml, TEMPLATES or LOGIT_SCALE no longer match what was registered. A "
         "line-up, a ladder or a wording is never changed because of a score. If this is a "
         "genuine correction: add a dated entry to the `changes` list in data/places.yaml saying "
@@ -599,14 +603,69 @@ def test_model_label_names_the_model_that_did_the_scoring():
     assert model_label(object()) == "object"  # anything without a model name: its class
 
 
-def test_model_label_says_which_activation_the_network_was_built_with():
+def test_model_label_says_how_the_network_was_built_and_by_which_library():
     # The same network and weights give different numbers when built with a different
-    # activation, so "ViT-B-32/openai" alone could stand for two sets of results.
-    clip_like = SimpleNamespace(model_name="ViT-B-32", pretrained="openai", activation="quickgelu")
-    assert model_label(clip_like) == "ViT-B-32/openai/quickgelu"
+    # activation, so "ViT-B-32/openai" alone could stand for two sets of results. The label
+    # names the network, the weights, the activation and the version of the library.
+    clip_like = SimpleNamespace(
+        model_name="ViT-B-32",
+        pretrained="openai",
+        activation="quickgelu",
+        library="open_clip-4.2.2",
+    )
+    assert model_label(clip_like) == "ViT-B-32/openai/quickgelu/open_clip-4.2.2"
 
 
-# -- calibration: can the instrument see the place in the originals at all? -----------------------
+# -- provenance: what a set of scores was made with ------------------------------------------------
+
+PROVENANCE_KEYS = {
+    "clip_model",
+    "preprocessing",
+    "templates",
+    "logit_scale",
+    "places_file_sha256",
+    "registered_sha",
+}
+
+
+def test_provenance_says_what_a_set_of_scores_was_made_with(tmp_path):
+    path = write_places(tmp_path / "places.yaml", GOOD_FILE)
+    places = load_places(path)
+    assert provenance(FakeEmbedder({}), places, path) == {
+        "clip_model": "fake/by-hand",
+        "preprocessing": "none: vectors written by hand",
+        "templates": list(TEMPLATES),
+        "logit_scale": 100.0,
+        "places_file_sha256": sha256_bytes(path.read_bytes()),  # the file, byte for byte
+        "registered_sha": registered_sha(places),  # the line-ups, ladders and wordings in it
+    }
+
+
+def test_provenance_tells_a_note_in_the_file_from_a_change_to_what_is_scored(tmp_path):
+    fake = FakeEmbedder({})
+    path = write_places(tmp_path / "places.yaml", GOOD_FILE)
+    before = provenance(fake, load_places(path), path)
+
+    logged = copy.deepcopy(GOOD_FILE)
+    logged["changes"] = [{"date": "2026-11-17", "what": "a note", "why": "a reason"}]
+    write_places(path, logged)
+    noted = provenance(fake, load_places(path), path)
+    assert noted["places_file_sha256"] != before["places_file_sha256"]  # the file did change
+    assert noted["registered_sha"] == before["registered_sha"]  # what is scored did not
+
+    easier = copy.deepcopy(GOOD_FILE)
+    easier["lineups"]["towns"][9] = "Kayham, Testland"
+    write_places(path, easier)
+    assert provenance(fake, load_places(path), path)["registered_sha"] != before["registered_sha"]
+
+
+def test_provenance_does_not_invent_a_preprocessing_the_embedder_did_not_state(tmp_path):
+    path = write_places(tmp_path / "places.yaml", GOOD_FILE)
+    silent = SimpleNamespace(model_name="fake")
+    assert provenance(silent, load_places(path), path)["preprocessing"] == "not known"
+
+
+# -- calibration: where the true place comes in its line-up before any loop has run ---------------
 
 D, E, F = "the Dees, Testland", "the Ees, Testland", "the Effs, Testland"
 
@@ -631,9 +690,7 @@ def calibration_case() -> tuple[dict[str, bytes], dict[str, PlaceEntry], FakeEmb
 def test_calibration_scores_every_photograph_in_its_own_lineup():
     images, places, fake = calibration_case()
     cal = calibrate_places(images, places, fake)
-    assert cal["clip_model"] == "fake/by-hand"
-    assert cal["templates"] == list(TEMPLATES) and cal["logit_scale"] == 100
-    assert cal["places_sha"] == places_sha(places)  # which line-ups and ladders it was scored on
+    assert set(cal) == {"photographs", "cross"}
     own = {row["image"]: row for row in cal["photographs"]}
     assert list(own) == ["landscape_d_01", "street_a_01", "street_a_02"]  # sorted by name
     assert (own["street_a_01"]["rank"], own["street_a_01"]["top"]) == (1, A)
@@ -744,7 +801,6 @@ ROW_KEYS = {
     "generation",
     "output_sha",
     "config_sha",
-    "places_sha",
     "place",
     "lineup",
     "lineup_size",
@@ -757,7 +813,7 @@ ROW_KEYS = {
     "ladder",
     "best_rung",
     "specific_minus_generic",
-    "clip_model",
+    *PROVENANCE_KEYS,
 }
 
 
@@ -874,13 +930,16 @@ def test_place_test_writes_one_sorted_row_per_scored_generation(monkeypatch):
     assert all(r["experiment_id"] == EXP and r["image"] == "street_test_01" for r in rows)
     assert [r["variant"] for r in rows] == ["gentle"] * 2 + ["harsh"] * 5
     assert all(r["place"] == "Aville, Testland" and r["lineup"] == "towns" for r in rows)
-    assert all(r["lineup_size"] == 10 and r["clip_model"] == "fake/by-hand" for r in rows)
-    # each row says which file it scored, which configuration of the chain produced it, and
-    # which line-ups and ladders it was scored against
+    assert all(r["lineup_size"] == 10 for r in rows)
+    # each row says which file it scored and which configuration of the chain produced it
     assert rows[2]["output_sha"] == sha256_bytes(tiny_png(10))
     assert all(r["config_sha"] == "config-1" for r in rows)
-    registered = places_sha(load_places(get_settings().telephone_data_dir / "places.yaml"))
-    assert all(r["places_sha"] == registered for r in rows)
+    # and what it was scored with: the model, what the model was shown, the wordings, the
+    # scale, the places file byte for byte and the line-ups and ladders registered in it
+    places_file = get_settings().telephone_data_dir / "places.yaml"
+    made_with = provenance(fake, load_places(places_file), places_file)
+    assert made_with["clip_model"] == "fake/by-hand"
+    assert all({key: r[key] for key in PROVENANCE_KEYS} == made_with for r in rows)
 
     # the harsh chain, repeat 0: 0, 20 and 40 degrees away from Aville
     g0, g1, g2 = rows[2], rows[3], rows[4]
@@ -1156,9 +1215,13 @@ def test_calibrate_scores_the_originals_and_writes_the_calibration_file(monkeypa
     assert result.exit_code == 0, result.output
     out = get_settings().results_dir / "place_calibration.json"
     cal = json.loads(out.read_text(encoding="utf-8"))
-    assert cal["clip_model"] == "fake/by-hand" and cal["templates"] == list(TEMPLATES)
-    registered = places_sha(load_places(get_settings().telephone_data_dir / "places.yaml"))
-    assert cal["places_sha"] == registered
+    assert set(cal) == PROVENANCE_KEYS | {"photographs", "cross"}
+    places_file = get_settings().telephone_data_dir / "places.yaml"
+    made_with = provenance(fake, load_places(places_file), places_file)
+    assert {key: cal[key] for key in PROVENANCE_KEYS} == made_with
+    assert cal["places_file_sha256"] == sha256_bytes(places_file.read_bytes())
+    # the summary says what did the scoring and what part of each picture it was shown
+    assert "fake/by-hand" in result.output and "none: vectors written by hand" in result.output
 
     # (a) each photograph in its own line-up
     assert [row["image"] for row in cal["photographs"]] == ["landscape_test_01", "street_test_01"]
@@ -1170,7 +1233,13 @@ def test_calibrate_scores_the_originals_and_writes_the_calibration_file(monkeypa
     # a rank is never printed alone: the nearest other candidate and the margin over it go with it
     assert (street["rival"], street["margin"]) == ("Beeton, Testland", 0.134)  # 1 - cos(30)
     assert "margin +0.1340 over Beeton, Testland" in result.output
-    assert "does not mean" in result.output  # what rank 1 does and does not show
+    # what a rank does and does not show, and that line-ups differ in how hard they are
+    assert "It is a result about those names and nothing more" in result.output
+    assert "not equally hard" in result.output
+    # a rank is always printed with its prob: two rows in each of the two tables
+    table_rows = [line for line in result.output.splitlines() if line.startswith("  ")]
+    assert len(table_rows) == 4
+    assert all(" rank " in line and " prob " in line for line in table_rows)
 
     # (b) each photograph against the place it was not taken in
     cross = {(row["image"], row["place"]): row for row in cal["cross"]}
@@ -1212,6 +1281,46 @@ def test_calibrate_with_no_originals_says_where_it_looked(monkeypatch):
     assert str(s.originals_dir) in line
 
 
+# -- wording: a rank in a line-up, and nothing more ------------------------------------------------
+
+# Words that claim more than a rank in a chosen line-up can show.
+OVERCLAIMS = ("recognis", "knows", "picks the right place", "pick the right place", "see the place")
+
+
+def test_the_place_test_is_described_as_a_rank_in_a_lineup_and_nothing_more(monkeypatch):
+    """What is measured is where the true place comes in a line-up of candidate names. None of
+    the texts a reader meets may say that the machine recognises or knows a place."""
+    import telephone.metrics as metrics
+    from telephone.metrics import place
+
+    calibrate_case(monkeypatch)
+    texts = {
+        "the place module": place.__doc__,
+        "telephone.metrics": metrics.__doc__,
+        "score_lineup": place.score_lineup.__doc__,
+        "score_ladder": place.score_ladder.__doc__,
+        "calibrate_places": place.calibrate_places.__doc__,
+        "place-test --help": runner.invoke(app, ["place-test", "--help"]).output,
+        "place-test --calibrate": runner.invoke(app, ["place-test", "--calibrate"]).output,
+    }
+    for where, text in texts.items():
+        for claim in OVERCLAIMS:
+            assert claim not in text.lower(), f"{where} says {claim!r}"
+    # the measurement in the project's own words, and the two cautions that go with it
+    module = " ".join(place.__doc__.split())
+    assert "first, or Nth, in a line-up of 12 candidates" in module
+    assert "Rank and prob are always quoted together" in module
+    assert "not equally hard" in module
+    assert "line-up" in " ".join(texts["place-test --help"].split())
+
+
+def test_the_place_module_says_which_part_of_a_picture_the_model_is_shown():
+    from telephone.metrics import place
+
+    module = " ".join(place.__doc__.split())
+    assert "central 224 x 224 square" in module and "QuickGELU" in module
+
+
 # -- the real model -------------------------------------------------------------------------------
 
 
@@ -1233,4 +1342,6 @@ def test_real_clip_fits_the_same_interface_as_the_fake(test_image):
     assert [rung["label"] for rung in res["ladder"]] == list(entry.ladder)
     assert all(-1.0 <= rung["sim"] <= 1.0 for rung in res["ladder"])
     assert np.linalg.norm(place_vector(embedder, entry.place)) == pytest.approx(1.0, abs=1e-6)
-    assert model_label(embedder) == "ViT-B-32/openai/quickgelu"
+    import open_clip
+
+    assert model_label(embedder) == f"ViT-B-32/openai/quickgelu/open_clip-{open_clip.__version__}"

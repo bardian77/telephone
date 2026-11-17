@@ -1,6 +1,6 @@
 """Metrics: drift (CLIP cosine distance, colour-histogram distance), structure (SSIM, LPIPS),
-survival (attribute comparison), machine readability (OCR, faces) and place (whether CLIP still
-picks the true place out of a line-up of candidates)."""
+survival (attribute comparison), machine readability (OCR, faces) and place (where the true place
+comes when CLIP sorts a line-up of candidate names by how well they match the picture)."""
 
 from .embed import ClipEmbedder, MetricsUnavailable, cosine_distance, histogram_distance
 from .place import (

@@ -17,6 +17,7 @@ from telephone.metrics import (
     histogram_distance,
     ssim_score,
 )
+from telephone.metrics.embed import describe_preprocessing
 from telephone.models import Attributes
 
 
@@ -104,6 +105,22 @@ def test_first_failure():
 # -- CLIP is built the way its weights were trained ------------------------------------------------
 
 
+class Resize:
+    """Stands in for the step of the same name in CLIP's preparation of a picture."""
+
+    def __init__(self, size):
+        self.size = size
+
+
+class CenterCrop(Resize):
+    pass
+
+
+def steps(*transforms) -> types.SimpleNamespace:
+    """The steps a model applies to a picture, in the shape open_clip hands them over in."""
+    return types.SimpleNamespace(transforms=list(transforms))
+
+
 def use_fake_open_clip(monkeypatch) -> list[dict]:
     """Put stand-ins for open_clip and torch in place, so no weights and no network are needed.
 
@@ -141,9 +158,10 @@ def use_fake_open_clip(monkeypatch) -> list[dict]:
                 UserWarning,
                 stacklevel=2,
             )
-        return FakeModel(built_quick), None, None
+        return FakeModel(built_quick), None, steps(Resize(224), CenterCrop((224, 224)))
 
     fake = types.SimpleNamespace(
+        __version__="9.9.9",
         create_model_and_transforms=create_model_and_transforms,
         get_pretrained_cfg=get_pretrained_cfg,
     )
@@ -177,6 +195,31 @@ def test_clip_built_with_plain_gelu_for_weights_trained_that_way_says_so(monkeyp
     assert embedder.activation == "gelu"
 
 
+def test_clip_says_which_version_of_the_library_built_it(monkeypatch):
+    # part of the label written into results, so two builds can never share a label
+    use_fake_open_clip(monkeypatch)
+    assert ClipEmbedder().library == "open_clip-9.9.9"
+
+
+def test_what_clip_does_to_a_picture_first_is_read_off_its_own_steps(monkeypatch):
+    """CLIP's standard preparation makes the shorter side 224 px and keeps the central 224 px
+    square, so the model never sees what lies outside that square. Results record this, and
+    it is read off the steps that really run, not assumed."""
+    standard = steps(Resize(224), CenterCrop((224, 224)), object())
+    assert describe_preprocessing(standard) == "central square at 224 px"
+    assert describe_preprocessing(steps(Resize(336), CenterCrop((336, 336)))) == (
+        "central square at 336 px"
+    )
+    # anything else is not described by guesswork: the whole picture squashed into a square,
+    # a crop that is not the square the resize aimed at, or no steps at all
+    assert describe_preprocessing(steps(Resize((224, 224)))) == "not known"
+    assert describe_preprocessing(steps(Resize(256), CenterCrop((224, 224)))) == "not known"
+    assert describe_preprocessing(None) == "not known"
+
+    use_fake_open_clip(monkeypatch)
+    assert ClipEmbedder().preprocessing == "central square at 224 px"
+
+
 @pytest.mark.slow
 def test_real_clip_is_built_with_quickgelu_and_without_a_mismatch_warning():
     """Needs the CLIP weights, so it is skipped by default.
@@ -191,3 +234,23 @@ def test_real_clip_is_built_with_quickgelu_and_without_a_mismatch_warning():
     kinds = {type(m).__name__ for m in embedder.model.modules() if "GELU" in type(m).__name__}
     assert kinds == {"QuickGELU"}
     assert embedder.activation == "quickgelu"
+
+
+@pytest.mark.slow
+def test_real_clip_only_sees_the_central_square_of_a_picture():
+    """Needs the CLIP weights, so it is skipped by default.
+
+    A picture twice as wide as it is tall, with noise in the middle and plain colour either
+    side. What the network is given is exactly what it is given for the middle square alone.
+    """
+    import numpy as np
+    from PIL import Image
+
+    embedder = ClipEmbedder.shared()
+    assert embedder.preprocessing == "central square at 224 px"
+    noise = np.random.default_rng(0).integers(0, 256, (224, 224, 3), dtype=np.uint8)
+    wide = Image.new("RGB", (448, 224), (255, 0, 0))
+    wide.paste(Image.fromarray(noise, "RGB"), (112, 0))
+    seen = embedder.preprocess(wide)
+    assert tuple(seen.shape) == (3, 224, 224)
+    assert bool((seen == embedder.preprocess(wide.crop((112, 0, 336, 224)))).all())

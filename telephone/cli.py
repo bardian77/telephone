@@ -516,7 +516,7 @@ def _place_experiment(experiment: str, entries: dict, places_path: Path, out: Pa
     from .export import _private_stems
     from .imageio import sha256_bytes
     from .ledger import Ledger
-    from .metrics.place import model_label, places_sha, round_floats, score_place
+    from .metrics.place import provenance, round_floats, score_place
     from .render import image_of, variant_of
 
     s = get_settings()
@@ -561,8 +561,8 @@ def _place_experiment(experiment: str, entries: dict, places_path: Path, out: Pa
         _fail_stderr(f"Nothing to score in {experiment}; {skipped}.", code=1)
 
     embedder = _place_embedder()
-    model = model_label(embedder)
-    registered = places_sha(entries)  # which line-ups and ladders these rows were scored on
+    # what every row was scored with: the model, the wordings, the places file and its line-ups
+    made_with = provenance(embedder, entries, places_path)
     results: dict[tuple[str, str], dict] = {}  # a file that did not change is looked at once
     rows = []
     for rec, stem, path in to_score:
@@ -584,9 +584,8 @@ def _place_experiment(experiment: str, entries: dict, places_path: Path, out: Pa
                 # the chain settings that made this file; two values in one chain mean it
                 # was re-run with other settings and stopped part of the way
                 "config_sha": rec.config_sha,
-                "places_sha": registered,
                 **results[key],
-                "clip_model": model,
+                **made_with,
             }
         )
     rows.sort(key=lambda r: (r["chain_id"], r["repeat"], r["generation"]))
@@ -594,17 +593,18 @@ def _place_experiment(experiment: str, entries: dict, places_path: Path, out: Pa
     lines = [json.dumps(row, sort_keys=True, ensure_ascii=False) for row in rows]
     _write_text(path, "\n".join(lines) + "\n")
     console.print(
-        f"wrote {len(rows)} rows to {path} ({len(results)} different images scored with {model})"
+        f"wrote {len(rows)} rows to {path} ({len(results)} different images scored with "
+        f"{made_with['clip_model']})"
     )
     console.print(skipped, style="dim", soft_wrap=True)
 
 
 def _place_calibrate(entries: dict, places_path: Path, out: Path | None) -> None:
     """Score the originals only and write place_calibration.json: before any loop has run,
-    does CLIP rank the true place first, and by how much?"""
+    where does the true place come in its line-up, and by how much?"""
     from .doctor import IMAGE_EXTS
     from .imageio import load_image, to_png_bytes
-    from .metrics.place import calibrate_places, round_floats
+    from .metrics.place import calibrate_places, provenance, round_floats
 
     s = get_settings()
     # Only files directly in data/originals: the private folder below it is never read.
@@ -623,20 +623,25 @@ def _place_calibrate(entries: dict, places_path: Path, out: Path | None) -> None
     embedder = _place_embedder()
     # the same bytes a chain stores as generation 0
     images = {stem: to_png_bytes(load_image(path)) for stem, path in found.items()}
-    cal = round_floats(calibrate_places(images, entries, embedder))
+    made_with = provenance(embedder, entries, places_path)
+    cal = round_floats({**made_with, **calibrate_places(images, entries, embedder)})
     path = out or s.results_dir / "place_calibration.json"
     _write_text(path, json.dumps(cal, indent=2, ensure_ascii=False) + "\n")
 
     def say(line: str = "") -> None:
         console.print(line, soft_wrap=True, markup=False, highlight=False)
 
-    say(f"each photograph in its own line-up ({cal['clip_model']})")
+    say(f"scored with {cal['clip_model']}; what it is shown of a picture: {cal['preprocessing']}")
     say(
-        "rank 1 means that, of the names in the line-up, the true one matched the picture best. "
-        "It does not mean the machine knows the place."
+        "Rank 1 means that, of the names in the line-up, the true one matched the picture best. "
+        "It is a result about those names and nothing more. Line-ups are not equally hard, so "
+        "read a rank with its prob and margin, and do not compare photographs that use "
+        "different line-ups."
     )
+    say()
+    say("each photograph in its own line-up")
     for row in cal["photographs"]:
-        control = "  (negative control)" if row["negative_control"] else ""
+        control = "  (registered as a negative control)" if row["negative_control"] else ""
         ahead = "over" if row["margin"] > 0 else "behind"
         say(
             f"  {row['image']:<34} rank {row['rank']:>2} of {row['lineup_size']}  "
@@ -673,12 +678,12 @@ def place_test(
         help="Default: data/results/<experiment>_place.jsonl, or place_calibration.json",
     ),
 ):
-    """Does CLIP still pick the true place out of a line-up? Scores every generation; no key."""
+    """Where does the true place come in a line-up of candidate names? CLIP scores every
+    generation; no key."""
     # Per generation: the rank of the true place among the candidates in data/places.yaml (1 means
-    # that, of those names, the true one matched the picture best; it does not mean the machine
-    # knows the place), its probability, the candidate ranked first, the nearest other candidate
-    # and the margin over it, and where the picture sits on the ladder from the place to a kind
-    # of place.
+    # that, of those names, the true one matched the picture best, and nothing more), its
+    # probability, the candidate ranked first, the nearest other candidate and the margin over
+    # it, and where the picture sits on the ladder from the place to a kind of place.
     from .metrics.place import load_places
 
     if calibrate == bool(experiment):  # both, or neither

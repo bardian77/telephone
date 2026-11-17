@@ -1,19 +1,36 @@
-"""The place line-up: does a machine still recognise where a photograph was taken?
+"""The place line-up: where does the true place come in a line-up of candidate names?
 
 CLIP turns a picture and a piece of text into two lists of numbers that can be compared. Here the
 texts are place names. Each photograph has a line-up, a fixed list of candidate places that
-includes the true one, and the question is where the true place comes when the candidates are
-sorted by how well they match the picture.
+includes the true one (12 in data/places.yaml; the loader accepts 10 to 12). The measurement is
+where the true place comes when the candidates are sorted by how well they match the picture:
+first, or Nth, in a line-up of 12 candidates.
 
 Two measurements come out of it, both read across the generations of a chain:
 
-- the line-up: the rank of the true place among 10 to 12 candidates (1 means the machine picks
-  the right place), its probability, and which candidate came first;
+- the line-up: the rank of the true place among the candidates, its probability (prob), the
+  candidate that came first, the nearest other candidate and the margin over it;
 - the ladder: how well the picture matches the place, then wider and more generic descriptions
   ("Bologna, Italy" > "Italy" > "Europe" > "a city").
 
-The places, line-ups and ladders live in data/places.yaml and were fixed before any picture was
-scored. Everything here takes an `embedder`: any object with `embed(image_bytes)` and
+How to read them. Rank 1 means that, of the names in the line-up, the true one matched the
+picture best. It is a result about those names and nothing more. Rank and prob are always quoted
+together, because a rank of 1 can be won by a wide margin or by a hair. The line-ups are not
+equally hard: how many candidates come close to the true place differs from one line-up to the
+next. So ranks, probs and ladder numbers are followed across the generations of one photograph
+and are not compared between photographs that use different line-ups.
+
+What is fixed, and when. The places, line-ups and ladders in data/places.yaml, and TEMPLATES and
+LOGIT_SCALE below, were fixed before any picture was scored. The model is CLIP ViT-B/32 with
+OpenAI's weights, built with the activation those weights were trained with (QuickGELU). The
+first calibration was scored on a network built with the wrong activation; the build was
+corrected on 2026-11-17 and is registered from then on (see `changes` in data/places.yaml). The
+preprocessing is CLIP's standard one and was the same throughout: the picture is shrunk until
+its shorter side is 224 px and the central 224 x 224 square is kept. So the model is only ever
+shown the central square of a picture, a little over half of a 16:9 photograph and three
+quarters of a 4:3 one. Every results file records all of this (see `provenance`).
+
+Everything here takes an `embedder`: any object with `embed(image_bytes)` and
 `embed_text(text)` that return unit vectors, as `telephone.metrics.embed.ClipEmbedder` does.
 Tests pass a fake one, so nothing in this module needs the CLIP weights.
 """
@@ -29,6 +46,7 @@ from typing import Protocol
 import numpy as np
 import yaml
 
+from ..imageio import sha256_bytes
 from ..models import stable_hash
 
 
@@ -44,8 +62,9 @@ class Embedder(Protocol):
 # lucky or unlucky wording does not decide the result. Fixed before any score was seen.
 TEMPLATES: tuple[str, ...] = ("a photo taken in {place}", "a photograph of {place}", "{place}")
 
-# CLIP multiplies similarities by about 100 before turning them into probabilities. Using the
-# same scale makes `prob` mean what it means when CLIP is used as a classifier.
+# CLIP multiplies similarities by 100 before turning them into probabilities when it is used to
+# choose between labels. The same scale is used here, so `prob` is CLIP's own probability for
+# the true place among the candidates of the line-up. Fixed before any score was seen.
 LOGIT_SCALE = 100.0
 
 # The fairness rule. Every candidate in a line-up is a bare place name, all written the same way.
@@ -75,7 +94,9 @@ class PlaceEntry:
     lineup_name: str
     lineup: tuple[str, ...]  # the candidates, the true place among them
     ladder: tuple[str, ...]  # from the true place to a generic kind of place
-    negative_control: bool = False  # True when the picture is not expected to show its place
+    # True when the photograph was put in as a negative control: a picture predicted, before
+    # any scoring, not to have its true place come first
+    negative_control: bool = False
 
 
 def _words(label: str) -> list[str]:
@@ -186,7 +207,7 @@ def load_places(path: str | Path) -> dict[str, PlaceEntry]:
     return places
 
 
-def places_sha(places: dict[str, PlaceEntry], templates: tuple[str, ...] = TEMPLATES) -> str:
+def registered_sha(places: dict[str, PlaceEntry], templates: tuple[str, ...] = TEMPLATES) -> str:
     """A fingerprint of everything that was registered before any score was seen: each
     photograph's place, line-up and ladder, the wordings, and the scale.
 
@@ -262,9 +283,10 @@ def score_lineup(
                          the true place is ahead by this much. Negative: behind by this much
       per_template_rank  the rank under each wording on its own, to show wording sensitivity
 
-    A rank is only as hard to earn as the line-up makes it. Rank 1 says nothing about whether
-    the machine knows the place, so read it with prob, rival and margin beside it, and do not
-    compare ranks between photographs that use different line-ups.
+    A rank is only as hard to earn as the line-up makes it, and line-ups are not equally hard.
+    Rank 1 is a result about the names in this line-up and nothing more, so quote it with prob,
+    rival and margin beside it, and do not compare ranks between photographs that use
+    different line-ups.
     """
     lineup = tuple(lineup)
     if place not in lineup:
@@ -308,11 +330,13 @@ def score_ladder(
       best_rung               the label with the highest similarity
       specific_minus_generic  sim(first rung) - sim(last rung)
 
-    The size of that margin means nothing on its own: a generic phrase such as "a city" often
-    scores higher than any place name for every photograph, so the margin is usually negative
-    even for a picture the machine places correctly. Only its CHANGE from one generation to
-    the next is read. A falling margin means the picture is moving from the place towards the
-    kind of place.
+    Neither the size nor the sign of that margin means much on its own: how well a generic
+    phrase such as "a city" matches depends on the photograph and on the phrase. The rungs are
+    also not the same kind of thing for every photograph (the second rung is a country for
+    Bologna and a city for the Barbican). So ladder numbers are not compared between
+    photographs. Only the CHANGE of one photograph's margin from one generation to the next
+    is read: a falling margin means the picture now matches the name of the place less well,
+    next to the generic phrase, than it did.
     """
     image_vec = _unit(image_vec)
     rungs = [
@@ -348,15 +372,47 @@ def score_place(
 
 
 def model_label(embedder: object) -> str:
-    """The model that did the scoring, written into every result: network, weights and, when
-    the embedder knows it, the activation the network was built with, for example
-    'ViT-B-32/openai/quickgelu'. The activation is part of the label because the same network
-    and weights give different numbers when they are built with the wrong one."""
+    """The model that did the scoring, written into every result: the network, the weights,
+    the activation the network was built with and the library that built it, for example
+    'ViT-B-32/openai/quickgelu/open_clip-4.2.2'. An embedder that does not know one of these
+    leaves it out.
+
+    The activation and the library are part of the label because the same network and weights
+    gave different numbers when a version of the library built them with the wrong activation.
+    Two builds must never share a label.
+    """
     name = getattr(embedder, "model_name", None)
     if not name:
         return type(embedder).__name__
-    parts = [name, getattr(embedder, "pretrained", ""), getattr(embedder, "activation", "")]
+    parts = [name] + [getattr(embedder, a, "") for a in ("pretrained", "activation", "library")]
     return "/".join(part for part in parts if part)
+
+
+def provenance(
+    embedder: object,
+    places: dict[str, PlaceEntry],
+    places_file: str | Path,
+    templates: tuple[str, ...] = TEMPLATES,
+) -> dict:
+    """What a set of scores was made with. Written into every results file, so a number can
+    always be traced to the model, the wordings and the line-ups behind it.
+
+      clip_model          the model as it really ran (see model_label)
+      preprocessing       what the model is shown of a picture, as the embedder states it
+      templates           the wordings each place name was put into
+      logit_scale         the scale that turns similarities into prob
+      places_file_sha256  sha256 of the places file as it was when the scores were made
+      registered_sha      fingerprint of the line-ups, ladders and wordings alone (see
+                          registered_sha): unchanged when only a note is added to the file
+    """
+    return {
+        "clip_model": model_label(embedder),
+        "preprocessing": getattr(embedder, "preprocessing", None) or "not known",
+        "templates": list(templates),
+        "logit_scale": LOGIT_SCALE,
+        "places_file_sha256": sha256_bytes(Path(places_file).read_bytes()),
+        "registered_sha": registered_sha(places, templates),
+    }
 
 
 def calibrate_places(
@@ -365,7 +421,7 @@ def calibrate_places(
     embedder: Embedder,
     templates: tuple[str, ...] = TEMPLATES,
 ) -> dict:
-    """Can the instrument see the place at all, before any loop has run?
+    """Where does the true place come in its line-up before any loop has run?
 
     `images` maps a photograph's stem to its generation-0 bytes. Returns
       photographs  each photograph scored in its own line-up (as score_place)
@@ -373,7 +429,8 @@ def calibrate_places(
                    place's own line-up: a check that, say, the Dolomites picture does not put
                    Bologna first among the cities
     Photographs without an entry in `places` are left out. A line-up always ranks something
-    first, so a rank of 1 in the cross table is a warning, not a result.
+    first, so a rank of 1 in the cross table is a warning, not a result. What the scores were
+    made with is not in here: whoever saves them adds it (see provenance).
     """
     targets: dict[tuple[str, str], PlaceEntry] = {}  # one entry for each different place
     for entry in places.values():
@@ -406,14 +463,7 @@ def calibrate_places(
                     "top": res["top"],
                 }
             )
-    return {
-        "clip_model": model_label(embedder),
-        "places_sha": places_sha(places, templates),
-        "templates": list(templates),
-        "logit_scale": LOGIT_SCALE,
-        "photographs": photographs,
-        "cross": cross,
-    }
+    return {"photographs": photographs, "cross": cross}
 
 
 def round_floats(value, digits: int = 4):
