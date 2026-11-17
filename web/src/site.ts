@@ -63,34 +63,42 @@ export async function loadSite(): Promise<Site | null> {
 
 // The six photographs, in the order the page offers them. The descriptions are my own, from the
 // table in docs/BRIEF.md.
-export const PHOTOS: Array<{ stem: string; name: string; alt: string }> = [
+// `focus` is where the close-up looks first: a point on the original, as fractions of its width
+// and height. For the Bologna street it is the building, not the people walking past.
+export const PHOTOS: Array<{ stem: string; name: string; alt: string; focus: [number, number] }> = [
   {
     stem: 'street_bologna_portici_01',
+    focus: [0.78, 0.52],
     name: 'Bologna, the porticoes',
     alt: 'The porticoes of Bologna at sunset: warm terracotta arches and a few small figures.',
   },
   {
     stem: 'street_barbican_lake_01',
+    focus: [0.56, 0.76],
     name: 'The Barbican lake',
     alt: 'The lake at the Barbican in London: concrete columns, reflections, a fountain and a coot.',
   },
   {
     stem: 'text_barbican_seddon_house_01',
+    focus: [0.07, 0.955],
     name: 'Seddon House, the Barbican',
     alt: 'The Barbican from a low angle on an overcast day, with small signs that read Seddon House and No Cycling, No Skateboarding.',
   },
   {
     stem: 'landscape_dolomites_larches_01',
+    focus: [0.3, 0.5],
     name: 'Larches in the Dolomites',
     alt: 'The Dolomites: golden larches under a blue sky, a sun flare and a small car.',
   },
   {
     stem: 'portrait_dolomites_self_01',
+    focus: [0.555, 0.62],
     name: 'Me, in the Dolomites',
     alt: 'Me standing with a car in the Dolomites, taken with a very wide lens so the horizon curves.',
   },
   {
     stem: 'abstract_barbican_reflection_01',
+    focus: [0.5, 0.5],
     name: 'A reflection at the Barbican',
     alt: 'A concrete column reflected in rippled water, cropped from the photograph of the Barbican lake.',
   },

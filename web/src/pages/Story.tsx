@@ -13,13 +13,15 @@ const LOUPE = 220 // CSS pixels
 /** Where a point of the original sits in this pass's picture, as fractions of the picture. */
 function inPicture(p: SitePass, photo: SitePhoto, f: Focus) {
   const [x0, y0, x1, y1] = p.detail?.box ?? [0, 0, photo.width, photo.height]
-  const clamp = (v: number) => Math.min(1, Math.max(0, v))
-  return { u: clamp((f.x * photo.width - x0) / (x1 - x0)), v: clamp((f.y * photo.height - y0) / (y1 - y0)), across: (x1 - x0) / photo.width }
+  const u = (f.x * photo.width - x0) / (x1 - x0), v = (f.y * photo.height - y0) / (y1 - y0)
+  // out of the frame: a careless crop has cut this spot away
+  return { u, v, across: (x1 - x0) / photo.width, cut: u < 0 || u > 1 || v < 0 || v > 1 }
 }
 
 function Loupe({ p, photo, focus, reference }: { p: SitePass; photo: SitePhoto; focus: Focus; reference: number }) {
   if (!p.width || !p.height) return null
-  const { u, v, across } = inPicture(p, photo, focus)
+  const { u, v, across, cut } = inPicture(p, photo, focus)
+  if (cut) return <div className="loupe cut"><span>This spot has been cropped out of the frame.</span></div>
   // Show the same piece of the scene at every pass. At pass 1 that piece is LOUPE pixels of the
   // file, drawn one to one.
   const shareOfPicture = LOUPE / reference / across
@@ -130,7 +132,7 @@ export default function Story({ site }: { site: Site }) {
   const [stem, setStem] = useState(photos[0]?.photo.stem)
   const [journeyId, setJourneyId] = useState('screenshot_many_phones')
   const [index, setIndex] = useState(0)
-  const [focus, setFocus] = useState<Focus>({ x: 0.5, y: 0.5 })
+  const [focus, setFocus] = useState<Focus>(() => ({ x: photos[0]?.meta.focus[0] ?? 0.5, y: photos[0]?.meta.focus[1] ?? 0.5 }))
 
   const current = photos.find((x) => x.photo.stem === stem) ?? photos[0]
   const journeys = JOURNEYS.filter((j) => current?.photo.journeys[j.id])
@@ -232,7 +234,7 @@ export default function Story({ site }: { site: Site }) {
         <h2>Six photographs of mine</h2>
         <div className="picker">
           {photos.map(({ photo: ph, meta: m }) => (
-            <button key={ph.stem} className={ph.stem === photo.stem ? 'current' : ''} aria-pressed={ph.stem === photo.stem} onClick={() => { setStem(ph.stem); setIndex(0); setFocus({ x: 0.5, y: 0.5 }) }}>
+            <button key={ph.stem} className={ph.stem === photo.stem ? 'current' : ''} aria-pressed={ph.stem === photo.stem} onClick={() => { setStem(ph.stem); setIndex(0); setFocus({ x: m.focus[0], y: m.focus[1] }) }}>
               <img src={dataUrl(ph.thumb)} alt={m.alt} loading="lazy" />
               <span>{m.name}</span>
             </button>

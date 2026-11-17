@@ -181,6 +181,7 @@ button:active:not(:disabled) { transform: scale(0.97); }
 
 .closer { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 .loupe { flex: 0 0 auto; width: 220px; height: 220px; max-width: 60vw; border: 1px solid var(--line); border-radius: 8px; background-color: var(--surface-2); background-repeat: no-repeat; }
+.loupe.cut { display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; color: var(--text-2); font-size: 0.9rem; }
 @media (max-width: 520px) { .closer { flex-direction: column; } }
 
 .picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
