@@ -110,7 +110,7 @@ export default function HowItWorks({ site }: { site: Site | null }) {
                       <tr key={`${meta.stem}-${j.id}`}>
                         <td>{i === 0 ? meta.name : ''}</td>
                         <td>{j.label}</td>
-                        <td>{journey.settled_at ?? 'never'}</td>
+                        <td>{journey.settled_at ?? `not in ${journey.generations}`}</td>
                         <td className="num">{enlarged ? 'not comparable' : (percent(detail == null ? null : Math.min(1, detail)) ?? 'not measured')}</td>
                         <td className="num">{percent(lastOf(journey.series.frame_kept)) ?? 'not measured'}</td>
                         <td>{placeAtEnd(journey)}</td>

@@ -219,7 +219,8 @@ figure.line { margin: 8px 0 16px; max-width: 760px; }
 .reading li { margin-bottom: 8px; }
 .terms dt { font-weight: 600; margin-top: 14px; }
 .terms dd { margin: 2px 0 0; }
-.scroll { overflow-x: auto; max-width: calc(100vw - 32px); }
+/* the table of numbers may run wider than the text column */
+.scroll { overflow-x: auto; width: min(980px, calc(100vw - 32px)); }
 .reading .scroll table { min-width: 620px; }
 td.num, th.num { white-space: nowrap; }
 

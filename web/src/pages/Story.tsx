@@ -101,7 +101,7 @@ function rowsFor(photo: SitePhoto, journey: Journey, p: SitePass): Row[] {
     rows.push(
       s != null && p.pass >= s
         ? { term: 'Change', state: 'plain', text: `It has stopped changing. From pass ${s} on, every pass gives back the same picture.` }
-        : { term: 'Change', state: 'plain', text: p.pass >= journey.generations ? `Still changing after ${journey.generations} passes.` : 'Still changing with every pass.' },
+        : { term: 'Change', state: 'plain', text: p.pass >= journey.generations ? `Still changing after ${journey.generations} passes.` : 'Still changing.' },
     )
   }
 
@@ -135,7 +135,7 @@ function foundFor(photo: SitePhoto): string[] {
   if (phones) {
     const d = lastDetail(phones)
     const left = !enlarged && d != null ? `, with ${percent(d)} of its fine detail left` : ''
-    out.push(phones.settled_at != null ? `On a different phone every time it stopped at pass ${phones.settled_at}${left}.` : `On a different phone every time it never settled: it was still changing at pass ${phones.generations}${left}.`)
+    out.push(phones.settled_at != null ? `On a different phone every time it stopped at pass ${phones.settled_at}${left}.` : `On a different phone every time it had not stopped: it was still changing at pass ${phones.generations}${left}.`)
   }
   const loose = j('screenshot_loose_crop')
   if (loose) {
